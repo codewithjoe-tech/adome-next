@@ -44,9 +44,14 @@ export const getSubdomain = (): string => {
       const hostname = window.location.hostname; 
       const parts = hostname.split(".");
 
-      const localhostIndex = parts.indexOf("localhost");
+      const localhostIndex = parts.indexOf("theadome" );
+      
       if (localhostIndex > 0) {
-          return parts.slice(0, localhostIndex).join("."); 
+          const value = parts.slice(0, localhostIndex).join("."); 
+          if (value==='www'){
+            return 'public'
+          }
+          return value
       }
   }
   return "public"; 
