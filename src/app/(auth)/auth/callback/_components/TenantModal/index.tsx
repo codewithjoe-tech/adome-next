@@ -126,7 +126,7 @@ const TenantCreateModal = ({open , title , subdomain , setSubdomain}: Props) => 
   
 
 const navigatePage = ()=>{
-    window.location.href = `http://${subdomain}.localhost:3000/admin`
+    window.location.href = `http://${subdomain}.theadome.xyz/admin`
     // router.push(`/agency/${subdomain}/admin`)
 }
 
