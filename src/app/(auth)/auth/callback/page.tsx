@@ -25,7 +25,7 @@ const Page = () => {
 
   useEffect(() => {
     if (stateParam && stateParam !== "public" && typeof window !== 'undefined') {
-      const url = new URL(`http://${stateParam}.localhost:3000/login`);
+      const url = new URL(`http://${stateParam}.theadome.xyz/login`);
       url.search = searchParams.toString();
       window.location.href = url.toString();
     }
