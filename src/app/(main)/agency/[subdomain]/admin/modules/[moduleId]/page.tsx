@@ -1,3 +1,5 @@
+"use client"
+
 import withSubscriptionCheck from '@/HOC/subscription-check';
 import React from 'react'
 
