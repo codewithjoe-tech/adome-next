@@ -2,6 +2,7 @@
 import { store } from "@/Redux/store";
 // import { useAuth } from "@/context";
 import axios, { AxiosInstance, InternalAxiosRequestConfig } from "axios";
+import { toast } from "sonner";
 import { getCookie,removeCookie, setCookie } from "typescript-cookie";
 
 
@@ -29,14 +30,17 @@ axiosInstance.interceptors.request.use(
           try {
          
             const response:any = await axios.post(`${apiUrl}user/${schemaName}/refresh`, {}, { withCredentials: true });
-            // const data= response.data
+            const data= response.data
             // const refresh_token:string = data.refresh
             // const access_token:string = data.access
-            // const expiry = data.expiry
+            const expiry = data.expiry
             // setCookie(`${schemaName}_refresh_token`, refresh_token)
             // setCookie(`${schemaName}_access_token`, access_token)
             // setCookie(`${schemaName}_expiry`, expiry)
             // console.log(data)
+            setCookie(`${schemaName}_expiry`, expiry, {
+                      expires : 1
+                    })
             console.log(response)
           } catch (error) {
             console.error("Token refresh failed. Logging out user.");
@@ -72,6 +76,9 @@ axiosInstance.interceptors.response.use(
   (error) => {
     if (error.response && error.response.status === 429) {
       error.message = "Too many attempts. Please try again later.";
+      toast.error('IP Blocking for 1 minutes !!! ',{
+        description : "Too many attempts. Please try again later."
+      })
     }
     return Promise.reject(error);
   }

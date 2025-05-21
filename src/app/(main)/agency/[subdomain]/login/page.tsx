@@ -77,7 +77,9 @@ const Page = (props: Props) => {
         // setCookie(`${schemaName}_refresh_token`, refresh_token)
         // // setCookie('access_token', access_token)
         // setCookie(`${schemaName}_access_token`, access_token)
-        setCookie(`${schemaName}_expiry`, expiry)
+        setCookie(`${schemaName}_expiry`, expiry, {
+          expires : 1
+        })
         toast({
           title : "Success",
           description : "Logged in successfully",
