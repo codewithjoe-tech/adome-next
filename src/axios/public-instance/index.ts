@@ -37,6 +37,7 @@ axiosInstance.interceptors.request.use(
             // setCookie(`${schemaName}_access_token`, access_token)
             // setCookie(`${schemaName}_expiry`, expiry)
             // console.log(data)
+            console.log(response)
           } catch (error) {
             console.error("Token refresh failed. Logging out user.");
             throw new Error("Logout")
