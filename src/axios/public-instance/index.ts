@@ -52,9 +52,12 @@ axiosInstance.interceptors.request.use(
 
       return config;
     } catch (error) {
-   removeCookie('refresh_token')
-   removeCookie('access_token')
-   removeCookie('expiry')
+      const schemaName = store.getState().app.schemaName
+      const response:any = await axios.post(`${apiUrl}user/${schemaName}/logout`, {}, { withCredentials: true });
+            const data= response.data
+  //  removeCookie('refresh_token')
+  //  removeCookie('access_token')
+  //  removeCookie('expiry')
       console.error("Request Interceptor Error:", error);
       return Promise.reject(error);
     }
