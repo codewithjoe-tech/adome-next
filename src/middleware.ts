@@ -3,7 +3,7 @@ import { NextRequest, NextResponse } from "next/server";
 export function middleware(req: NextRequest) {
   const url = req.nextUrl.clone();
   const hostname = req.headers.get("host") || "";
-  const baseDomain = process.env.NEXT_PUBLIC_DOMAIN || "theadome.xyz";
+  const baseDomain = process.env.NEXT_PUBLIC_DOMAIN || "localhost:3000";
 
   if (hostname !== baseDomain && hostname.endsWith(baseDomain)) {
     const subdomain = hostname.split(`.${baseDomain}`)[0];

@@ -39,12 +39,12 @@ const NavbarClone = () => {
     if (response.status === 200) {
       removeCookie('refresh_token')
       removeCookie('access_token')
-      removeCookie('expiry')
+      removeCookie(`${schemaName}_expiry`)
       dispatch(logout())
     }
   }
 
-  const expiry = getCookie('expiry')
+  const expiry = getCookie(`${schemaName}_expiry`)
 
   const navItems = [
     { label: 'Home', href: '/' },

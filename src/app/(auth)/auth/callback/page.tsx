@@ -22,16 +22,11 @@ const Page = () => {
   const [subdomain, setSubdomain] = useState<string | null>(null)
   const { schemaName } = useSelector((state: RootState) => state.app)
   const [loading, setLoading] = useState(true)
-
-  useEffect(() => {
-    if (stateParam && stateParam !== "public" && typeof window !== 'undefined') {
-      const url = new URL(`http://${stateParam}.localhost:3000/login`);
-      url.search = searchParams.toString();
-      window.location.href = url.toString();
-    }
-  }, [stateParam]);  
+ 
 
   const fetchAuth = async () => {
+      console.log('calling fetchAuth')
+
     if (stateParam !== "public") return;
 
     try {
@@ -70,11 +65,19 @@ const Page = () => {
   //   enabled: isLoggedIn === false,
   //   retry: false
   // });
+
+
   useEffect(() => {
+    if (stateParam && stateParam !== "public" && typeof window !== 'undefined') {
+      const url = new URL(`http://${stateParam}.localhost:3000/login`);
+      url.search = searchParams.toString();
+      window.location.href = url.toString();
+    }else{
     fetchAuth()
-   
-  }, [])
-  
+
+    }
+  }, [stateParam]); 
+
 
   return (
     <div className="h-screen w-full flex items-center justify-center">

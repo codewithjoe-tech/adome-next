@@ -19,11 +19,11 @@ type Props = {
 const TenantAdminLoginCheck = ({ children }: Props) => {
     const router = useRouter()
     const { isLoggedIn } = useSelector((state: RootState) => state.user)
-    const {     tenant } = useSelector((state: RootState) => state.app)
+    const {     tenant,schemaName } = useSelector((state: RootState) => state.app)
     const dispatch = useDispatch()
     const [loading, setLoading] = useState(true)    
 
-    const exp = getCookie('expiry')
+    const exp = getCookie(`${schemaName}_expiry`)
     useEffect(() => {
         if (exp && isLoggedIn) {
             setLoading(false);

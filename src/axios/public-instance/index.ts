@@ -19,9 +19,9 @@ let isRefreshing = false;
 axiosInstance.interceptors.request.use(
   async (config: InternalAxiosRequestConfig) => {
     try {
-      const tokenExpiry:Number = Number(getCookie("expiry"));
       const currentTime:Number = Math.floor(Date.now() / 1000);
       const schemaName = store.getState().app.schemaName
+      const tokenExpiry:Number = Number(getCookie(`${schemaName}_expiry`));
 
       if ( tokenExpiry && currentTime > tokenExpiry) {
         if (!isRefreshing) {
@@ -33,9 +33,9 @@ axiosInstance.interceptors.request.use(
             const refresh_token:string = data.refresh
             const access_token:string = data.access
             const expiry = data.expiry
-            setCookie('refresh_token', refresh_token)
-            setCookie('access_token', access_token)
-            setCookie('expiry', expiry)
+            setCookie(`${schemaName}_refresh_token`, refresh_token)
+            setCookie(`${schemaName}_access_token`, access_token)
+            setCookie(`${schemaName}_expiry`, expiry)
             console.log(data)
           } catch (error) {
             console.error("Token refresh failed. Logging out user.");
