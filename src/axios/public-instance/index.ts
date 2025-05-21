@@ -29,14 +29,14 @@ axiosInstance.interceptors.request.use(
           try {
          
             const response:any = await axios.post(`${apiUrl}user/${schemaName}/refresh`, {}, { withCredentials: true });
-            const data= response.data
-            const refresh_token:string = data.refresh
-            const access_token:string = data.access
-            const expiry = data.expiry
-            setCookie(`${schemaName}_refresh_token`, refresh_token)
-            setCookie(`${schemaName}_access_token`, access_token)
-            setCookie(`${schemaName}_expiry`, expiry)
-            console.log(data)
+            // const data= response.data
+            // const refresh_token:string = data.refresh
+            // const access_token:string = data.access
+            // const expiry = data.expiry
+            // setCookie(`${schemaName}_refresh_token`, refresh_token)
+            // setCookie(`${schemaName}_access_token`, access_token)
+            // setCookie(`${schemaName}_expiry`, expiry)
+            // console.log(data)
           } catch (error) {
             console.error("Token refresh failed. Logging out user.");
             throw new Error("Logout")
