@@ -14,12 +14,13 @@ type Props = {
 
 const LoginCheck = ({ children }: Props) => {
     const { isLoggedIn } = useSelector((state: RootState) => state.user)
+    const { schemaName } = useSelector((state: RootState) => state.app)
     const dispatch = useDispatch()
 
     useEffect(() => {
         // dispatch(setAppInfo({schemaName :  getSubdomain()}))
 
-        const exp = getCookie('expiry')
+        const exp = getCookie(`${schemaName}_expiry`)
         if (exp && !isLoggedIn) {
             dispatch(setUserData({ isLoggedIn: true }))
         }

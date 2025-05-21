@@ -74,9 +74,10 @@ const Page = (props: Props) => {
         // const refresh_token:string = data.refresh
         // const access_token:string = data.access
         const expiry = data.expiry
-        // setCookie('refresh_token', refresh_token)
-        // setCookie('access_token', access_token)
-        setCookie('expiry', expiry)
+        // setCookie(`${schemaName}_refresh_token`, refresh_token)
+        // // setCookie('access_token', access_token)
+        // setCookie(`${schemaName}_access_token`, access_token)
+        setCookie(`${schemaName}_expiry`, expiry)
         toast({
           title : "Success",
           description : "Logged in successfully",
@@ -109,7 +110,7 @@ const Page = (props: Props) => {
     let isMounted = true;
   
     const authenticate = async () => {
-      if (getCookie('expiry')) {
+      if (getCookie(`${schemaName}_expiry`)) {
         router.push("/");
         return;
       }

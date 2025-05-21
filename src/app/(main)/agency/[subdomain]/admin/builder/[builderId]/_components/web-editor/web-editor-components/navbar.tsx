@@ -59,13 +59,13 @@ const Navbar = ({ element }: Props) => {
     })
   }
 
-  const expiry = getCookie('expiry')
+  const expiry = getCookie(`${schemaName}_expiry`)
   const handleLogout = async () => {
     const response = await axiosInstance.post(`user/${schemaName}/logout`)
     if (response.status == 200) {
       removeCookie('refresh_token')
       removeCookie('access_token')
-      removeCookie('expiry')
+      removeCookie(`${schemaName}_expiry`)
       reduxDispatch(logout())
     }
   }
