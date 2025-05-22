@@ -51,8 +51,8 @@ axiosInstance.interceptors.request.use(
           processQueue(null, access); // Retry queued requests
         } catch (err) {
           processQueue(err, null);
-          removeCookie(`${schemaName}_refresh_token`);
-          removeCookie(`${schemaName}_access_token`);
+          // removeCookie(`${schemaName}_refresh_token`);
+          // removeCookie(`${schemaName}_access_token`);
           removeCookie(`${schemaName}_expiry`);
           throw err;
         } finally {
