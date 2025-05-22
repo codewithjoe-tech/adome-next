@@ -1,70 +1,82 @@
-"use client"
+"use client";
 import { store } from "@/Redux/store";
-// import { useAuth } from "@/context";
-import axios, { AxiosInstance, InternalAxiosRequestConfig } from "axios";
-import { getCookie,removeCookie, setCookie } from "typescript-cookie";
+import axios, { AxiosInstance, InternalAxiosRequestConfig, AxiosResponse } from "axios";
+import { getCookie, setCookie, removeCookie } from "typescript-cookie";
 
+const apiUrl = process.env.NEXT_PUBLIC_API_URL;
 
-
-const apiUrl = process.env.NEXT_PUBLIC_API_URL 
 const axiosInstance: AxiosInstance = axios.create({
   baseURL: apiUrl,
   withCredentials: true,
-  timeout : 15000,
+  timeout: 15000,
 });
 
-// const {userLoggedIn} = useAuth()
 let isRefreshing = false;
+let failedQueue: {
+  resolve: (value?: unknown) => void;
+  reject: (reason?: any) => void;
+}[] = [];
+
+const processQueue = (error: any, token: string | null = null) => {
+  failedQueue.forEach((prom) => {
+    if (error) {
+      prom.reject(error);
+    } else {
+      prom.resolve(token);
+    }
+  });
+  failedQueue = [];
+};
 
 axiosInstance.interceptors.request.use(
   async (config: InternalAxiosRequestConfig) => {
-    try {
-      const currentTime:Number = Math.floor(Date.now() / 1000);
-      const schemaName = store.getState().app.schemaName
-      const tokenExpiry:Number = Number(getCookie(`${schemaName}_expiry`));
+    const schemaName = store.getState().app.schemaName;
+    const tokenExpiry = Number(getCookie(`${schemaName}_expiry`));
+    const currentTime = Math.floor(Date.now() / 1000);
 
-      if ( tokenExpiry && currentTime > tokenExpiry) {
-        if (!isRefreshing) {
-          isRefreshing = true;
-          try {
-         
-            const response:any = await axios.post(`${apiUrl}user/${schemaName}/refresh`, {}, { withCredentials: true });
-            const data= response.data
-            const refresh_token:string = data.refresh
-            const access_token:string = data.access
-            const expiry = data.expiry
-            setCookie(`${schemaName}_refresh_token`, refresh_token)
-            setCookie(`${schemaName}_access_token`, access_token)
-            setCookie(`${schemaName}_expiry`, expiry)
-            console.log(data)
-          } catch (error) {
-            console.error("Token refresh failed. Logging out user.");
-            throw new Error("Logout")
+    if (tokenExpiry && currentTime > tokenExpiry) {
+      if (!isRefreshing) {
+        isRefreshing = true;
+        try {
+          const response = await axios.post(
+            `${apiUrl}user/${schemaName}/refresh`,
+            {},
+            { withCredentials: true }
+          );
+          const { refresh, access, expiry } = response.data;
+          setCookie(`${schemaName}_refresh_token`, refresh);
+          setCookie(`${schemaName}_access_token`, access);
+          setCookie(`${schemaName}_expiry`, expiry);
 
-           
-          } finally {
-            isRefreshing = false;
-          }
-        } else {
-          console.log("Token refresh already in progress, waiting...");
+          processQueue(null, access); // Retry queued requests
+        } catch (err) {
+          processQueue(err, null);
+          removeCookie(`${schemaName}_refresh_token`);
+          removeCookie(`${schemaName}_access_token`);
+          removeCookie(`${schemaName}_expiry`);
+          throw err;
+        } finally {
+          isRefreshing = false;
         }
       }
 
-      return config;
-    } catch (error) {
-   removeCookie('refresh_token')
-   removeCookie('access_token')
-   removeCookie('expiry')
-      console.error("Request Interceptor Error:", error);
-      return Promise.reject(error);
+      return new Promise((resolve, reject) => {
+        failedQueue.push({
+          resolve: () => resolve(config),
+          reject: (err) => reject(err),
+        });
+      });
     }
+
+    return config;
   },
   (error) => {
     return Promise.reject(error);
   }
 );
+
 axiosInstance.interceptors.response.use(
-  (response) => response,
+  (response: AxiosResponse) => response,
   (error) => {
     if (error.response && error.response.status === 429) {
       error.message = "Too many attempts. Please try again later.";
@@ -72,6 +84,5 @@ axiosInstance.interceptors.response.use(
     return Promise.reject(error);
   }
 );
-
 
 export default axiosInstance;
