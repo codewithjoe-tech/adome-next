@@ -9,6 +9,9 @@ import { Avatar, AvatarFallback, AvatarImage } from "@/components/ui/avatar";
 import debounce from 'lodash/debounce';
 import { Spinner } from '@/app/components/ui/spinner';
 import withSubscriptionCheck from '@/HOC/subscription-check';
+import Messages from './_components/messages';
+import CommunitySidebar from './_components/community-sidebar';
+import { extractUrl } from '@/constants';
 
 interface Community {
   id: number;
@@ -129,11 +132,22 @@ const Page: React.FC = () => {
   
   
 
-  const handleSendMessage = (e: FormEvent<HTMLFormElement>) => {
+const linkMetadata = async (link:string)=>{
+  const response = await axiosInstance.get(`community/${schemaName}/get-link-data?url=${link}`)
+  return response.data
+}
+
+  const handleSendMessage = async (e: FormEvent<HTMLFormElement>) => {
     e.preventDefault();
     if (newMessage.trim()) {
       if (ws.current?.readyState === WebSocket.OPEN) {
-        ws.current?.send(JSON.stringify({ content: newMessage, contenttype: "1" }));
+        const link = extractUrl(newMessage)
+        let data = null;
+        if(link){
+           data = await linkMetadata(link)
+        }
+
+        ws.current?.send(JSON.stringify({ content: newMessage, contenttype: "1" ,link:data?.title ? data : null }));
       }
       setNewMessage('');
       setTimeout(() => {
@@ -194,28 +208,7 @@ const Page: React.FC = () => {
 
   return (
     <div className="flex h-[90dvh] bg-background">
-      <div className="w-64 bg-sidebar flex-shrink-0 border-r border-sidebar-border">
-        <div className="p-4">
-          <h2 className="text-lg font-semibold text-sidebar-foreground text-gradient">Communities</h2>
-          <ul className="mt-4 space-y-2">
-            {communities && communities.map((community: any) => (
-              <li key={community.id}>
-                <button
-                  onClick={() => setSelectedCommunity(community)}
-                  className={`w-full flex items-center p-2 rounded-md text-sm ${
-                    selectedCommunity.id === community.id
-                      ? 'bg-sidebar-primary text-sidebar-primary-foreground'
-                      : 'text-sidebar-foreground hover:bg-sidebar-accent'
-                  }`}
-                >
-                  <span className="mr-2">{community.icon}</span>
-                  {community.name}
-                </button>
-              </li>
-            ))}
-          </ul>
-        </div>
-      </div>
+          <CommunitySidebar communities={communities} selectedCommunity={selectedCommunity} setSelectedCommunity={setSelectedCommunity} />
 
       <div className="flex-1 flex flex-col">
         <div className="p-4 border-b border-border bg-card">
@@ -228,23 +221,7 @@ const Page: React.FC = () => {
           )}
           {messages.length > 0 ? (
             messages.map((message: any) => (
-              <div key={message.id} className="mb-4 flex gap-3 items-start">
-                <Avatar className="h-9 w-9">
-                  <AvatarImage src={message.profile_pic} alt={message.full_name} />
-                  <AvatarFallback>
-                    {message.full_name?.charAt(0).toUpperCase()}
-                  </AvatarFallback>
-                </Avatar>
-                <div>
-                  <div className="flex items-center">
-                    <span className="font-semibold text-primary">{message?.full_name}</span>
-                    <span className="ml-2 text-xs text-muted-foreground">
-                      {message.timestamp}
-                    </span>
-                  </div>
-                  <p className="text-foreground">{message?.content}</p>
-                </div>
-              </div>
+       <Messages key={message.id} message={message} />
             ))
           ) : (
             <p className="text-muted-foreground">No messages yet.</p>
