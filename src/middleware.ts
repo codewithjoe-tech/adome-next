@@ -17,7 +17,6 @@ export function middleware(req: NextRequest) {
     .split(`.${baseDomain}`)
     .filter(Boolean)[0];
 
-  // Only rewrite for non-www subdomains
   if (customSubDomain && customSubDomain !== "www" && hostname !== baseDomain) {
     console.log("Subdomain detected:", customSubDomain);
     const newPath = `/agency/${customSubDomain}${pathWithSearchParams}`;
