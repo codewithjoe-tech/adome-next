@@ -1,8 +1,9 @@
-import React, { useEffect, useReducer } from "react";
+import React, { useEffect, useReducer, useState } from "react";
 import { Popover, PopoverContent, PopoverTrigger } from "@/components/ui/popover";
 import { HexColorPicker } from "react-colorful";
 import { EditorState } from "@/providers/editor/editor-provider";
-import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
+import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs"
+import Link from "next/link";
 import { EditorAction } from "@/providers/editor/editor-action";
 import { Slider } from "../ui/slider";
 import { Label } from "../ui/label";
@@ -13,12 +14,14 @@ import { AlignCenter, AlignVerticalJustifyCenter, ChevronsLeftRightIcon, LucideI
 import { Input } from "../ui/input";
 import { parseBackground } from "./get_initialStateProp";
 
+
 type Props = {
   state: EditorState;
-  bgImage?: boolean;
-  id: string;
-  dispatch: React.Dispatch<EditorAction>;
+  bgImage?: boolean
+  id: string
+  dispatch: React.Dispatch<EditorAction>
 };
+
 
 const solids = [
   '#E2E2E2', '#ff75c3', '#ffa647', '#ffe83f', '#9fff5b', '#70e2ff', '#cd93ff', '#09203f',
@@ -28,6 +31,7 @@ const solids = [
   '#4682b4', '#bdb76b', '#ffdead', '#daa520', '#556b2f', '#ff4444', '#ffbb33', '#00c851', '#33b5e5', '#aa66cc',
   '#ff6b81', '#ff9f43', '#5f27cd', '#54a0ff', '#10ac84'
 ];
+
 
 const gradients = [
   'linear-gradient(to top left, #accbee, #e7f0fd)',
@@ -75,12 +79,13 @@ const gradients = [
   'linear-gradient(to right, #ffb347, #ffcc33)',
 ];
 
+
 const images = [
   'url(https://images.unsplash.com/photo-1691200099282-16fd34790ade?ixlib=rb-4.0.3&ixid=M3wxMjA3fDB8MHxwaG90by1wYWdlfHx8fGVufDB8fHx8fA%3D%3D&auto=format&fit=crop&w=2532&q=90)',
-  'url(https://images.unsplash.com/photo-1691226099773-b13a89a1d167?ixlib=rb-4.0.3&ixid=M3wxMjA3fDB8MHxwaG90by1wYWdlfHx8fGVufDB8fHx8fA%3D%3D&auto=format&fit=crop&w=2532&q=90)',
+  'url(https://images.unsplash.com/photo-1691226099773-b13a89a1d167?ixlib=rb-4.0.3&ixid=M3wxMjA3fDB8MHxwaG90by1wYWdlfHx8fGVufDB8fHx8fA%3D%3D&auto=format&fit=crop&w=2532&q=90',
   'url(https://images.unsplash.com/photo-1688822863426-8c5f9b257090?ixlib=rb-4.0.3&ixid=M3wxMjA3fDB8MHxwaG90by1wYWdlfHx8fGVufDB8fHx8fA%3D%3D&auto=format&fit=crop&w=2532&q=90)',
   'url(https://images.unsplash.com/photo-1691225850735-6e4e51834cad?ixlib=rb-4.0.3&ixid=M3wxMjA3fDB8MHxwaG90by1wYWdlfHx8fGVufDB8fHx8fA%3D%3D&auto=format&fit=crop&w=2532&q=90)',
-];
+]
 
 const BackgroundColorPicker = ({ dispatch, state, bgImage = false, id: PropId }: Props) => {
   const background = state.editor.selectedElement.styles.background || "";
@@ -93,29 +98,31 @@ const BackgroundColorPicker = ({ dispatch, state, bgImage = false, id: PropId }:
     opacity2,
     image,
     ImageSize,
-    color,
   } = parseBackground(background as string);
+  console.log(gradient , direction , color1 , color2 ,opacity1 , opacity2 , image , ImageSize)
+
 
   const initialState: ColorState = {
-    color: color || "",
-    opacity: opacity1 || 1,
-    gradient: gradient || false,
+    color: "",
+    opacity: 1,
+    gradient: gradient,
     direction: direction || 'to right',
-    color1: color1 || "#ffffff",
-    color2: color2 || "#ffffff",
-    image: image || "",
-    opacity1: opacity1 || 1,
-    opacity2: opacity2 || 1,
+    color1: color1 || "rgb(255,255,255)",
+    color2: color2 || "rgb(255,255,255)",
+    image: image,
+    opacity1: opacity1,
+    opacity2: opacity2,
     selectedColor: 1,
-    ImageSize: ImageSize || "cover",
-  };
+    ImageSize : ImageSize
+  }
+
 
   const reducer = (state: ColorState, action: ColorAction): ColorState => {
     switch (action.type) {
       case "SET_COLOR":
         return { ...state, color: action.payload };
       case "SET_GRADIENT":
-        return { ...state, gradient: action.payload, color1: action.payload ? state.color || "#ffffff" : state.color1 };
+        return { ...state, gradient: action.payload, color1: action.payload ? state.color || "#ffffff" : state.color1, };
       case "SET_DIRECTION":
         return { ...state, direction: action.payload };
       case "SET_OPACITY":
@@ -133,34 +140,45 @@ const BackgroundColorPicker = ({ dispatch, state, bgImage = false, id: PropId }:
       case "SET_SELECTED_COLOR":
         return { ...state, selectedColor: action.payload };
       case "SET_IMAGE_SIZE":
-        return { ...state, ImageSize: action.payload };
+        return {
+         ...state,
+          ImageSize: action.payload
+        }
       case "RESET":
         return initialState;
       default:
         return state;
     }
   };
-
   const [colorState, colorDispatch] = useReducer(reducer, initialState);
+  // console.log(colorState)
+  // useEffect(() => {
+  //   colorDispatch({ type: "SET_GRADIENT", payload: gradient });
+  //   colorDispatch({ type: "SET_DIRECTION", payload: direction });
+  //   colorDispatch({ type: "SET_COLOR1", payload: color1 });
+  //   colorDispatch({ type: "SET_COLOR2", payload: color2 });
+  //   colorDispatch({ type: "SET_OPACITY1", payload: opacity1 });
+  //   colorDispatch({ type: "SET_OPACITY2", payload: opacity2 });
+  //   colorDispatch({ type: "SET_IMAGE", payload: image });
+  //   colorDispatch({ type: "SET_IMAGE_SIZE", payload: ImageSize });
+  // }, [state.editor.selectedElement.styles.background , ]);
 
-  // Sync colorState when the selected element changes
-  useEffect(() => {
-    colorDispatch({ type: "RESET" , payload :initialState }); // Reset to initial state
-    colorDispatch({ type: "SET_COLOR", payload: color || "" });
-    colorDispatch({ type: "SET_GRADIENT", payload: gradient || false });
-    colorDispatch({ type: "SET_DIRECTION", payload: direction || "to right" });
-    colorDispatch({ type: "SET_COLOR1", payload: color1 || "#ffffff" });
-    colorDispatch({ type: "SET_COLOR2", payload: color2 || "#ffffff" });
-    colorDispatch({ type: "SET_OPACITY1", payload: opacity1 || 1 });
-    colorDispatch({ type: "SET_OPACITY2", payload: opacity2 || 1 });
-    colorDispatch({ type: "SET_IMAGE", payload: image || "" });
-    colorDispatch({ type: "SET_IMAGE_SIZE", payload: ImageSize || "cover" });
-  }, [state.editor.selectedElement.id, background]);
 
   const handleColorChange = (newColor: string) => {
+    console.log("clicked color: " + newColor);
+
+    // setColor(newColor);
+    // handleOnChanges({
+    //   target: {
+    //     name: "backgroundColor",
+    //     value: newColor,
+    //   },
+    // });
+    // setnewColor(newColor)
     const styleObject = {
-      [PropId]: newColor,
-    };
+      [PropId]: newColor
+    }
+    console.log(styleObject)
 
     dispatch({
       type: 'UPDATE_ELEMENT',
@@ -173,135 +191,164 @@ const BackgroundColorPicker = ({ dispatch, state, bgImage = false, id: PropId }:
           },
         },
       },
-    });
+    })
   };
 
-  const hexToRgba = (color: string, alpha: number): string => {
-    if (!color || color === "") return `rgba(255, 255, 255, ${alpha})`; // Default to white if color is empty
 
+
+  const hexToRgba = (color: string, alpha: number): string => {
+    if (!color) return `rgba(NaN, 0, 0, ${alpha})`;
+  
     if (color.startsWith('rgba')) {
       return color.replace(/[\d\.]+\)$/g, `${alpha})`);
     }
-
+  
     if (color.startsWith('rgb')) {
       const values = color.match(/\d+/g);
       if (values && values.length === 3) {
         const [r, g, b] = values;
         return `rgba(${r}, ${g}, ${b}, ${alpha})`;
       }
-      return `rgba(255, 255, 255, ${alpha})`;
+      return `rgba(0, 0, 0, ${alpha})`;
     }
-
+  
     if (color.startsWith('#')) {
       let hex = color.replace('#', '');
       if (hex.length === 3) {
         hex = hex.split('').map(c => c + c).join('');
       }
-
-      if (hex.length === 6) {
-        const r = parseInt(hex.substring(0, 2), 16);
-        const g = parseInt(hex.substring(2, 4), 16);
-        const b = parseInt(hex.substring(4, 6), 16);
-        return `rgba(${r}, ${g}, ${b}, ${alpha})`;
-      }
+  
+      if (hex.length !== 6) return `rgba(0, 0, 0, ${alpha})`;
+  
+      const r = parseInt(hex.substring(0, 2), 16);
+      const g = parseInt(hex.substring(2, 4), 16);
+      const b = parseInt(hex.substring(4, 6), 16);
+  
+      return `rgba(${r}, ${g}, ${b}, ${alpha})`;
     }
-
-    return `rgba(0, 0, 0, 1)`; // Fallback to white
+  
+    // fallback
+    return `rgba(NaN, 0, 0, ${alpha})`;
   };
+  
+  // useEffect(() => {
+  //   const newColor = hexToRgba(color, alpha)
+  //   setnewColor(newColor)
+  //   handleColorChange(newColor)
+  //   // console.log(newColor)
+  //   // console.log(PropId)
+
+  // }, [color, alpha])
 
   const handleCustomColorChange = (newColor: string) => {
+    // setColor(newColor);
+    console.log(newColor)
+    // handleColorChangeCallback(newColor);
     if (colorState.gradient) {
       if (colorState.selectedColor === 1) {
-        colorDispatch({ type: 'SET_COLOR1', payload: newColor });
+        colorDispatch({ type: 'SET_COLOR1', payload: newColor })
       } else {
-        colorDispatch({ type: 'SET_COLOR2', payload: newColor });
+        colorDispatch({ type: 'SET_COLOR2', payload: newColor })
       }
     } else {
-      colorDispatch({ type: 'SET_COLOR', payload: newColor });
+      colorDispatch({ type: 'SET_COLOR', payload: newColor })
     }
+
+
   };
+
+
+
 
   useEffect(() => {
     if (colorState.gradient) {
-      let color = `linear-gradient(${colorState.direction}, ${hexToRgba(colorState.color1, colorState.opacity1)}, ${hexToRgba(colorState.color2, colorState.opacity2)})`;
-      if (colorState.image) {
-        color += `, url("${colorState.image}") no-repeat center / ${colorState.ImageSize || 'cover'}`;
+      let color = `linear-gradient(${colorState.direction}, ${hexToRgba(colorState.color1, colorState.opacity1)}, ${hexToRgba(colorState.color2, colorState.opacity2)}) `
+      if (colorState.image){
+        color += `, url("${colorState.image}") no-repeat center / ${colorState.ImageSize ||'cover'}`
       }
-      handleColorChange(color);
+      // console.log(color)
+      console.log(color)
+      handleColorChange(color)
+
     } else {
-      const color = hexToRgba(colorState.color, colorState.opacity);
-      handleColorChange(color);
+      const color = hexToRgba(colorState.color, colorState.opacity)
+      // console.log(color)
+      handleColorChange(color)
     }
-  }, [colorState]);
+  }, [colorState])
+
 
   const colorValue = (): string => {
     if (colorState.gradient) {
       if (colorState.selectedColor === 1) {
-        return colorState.color1;
+        return colorState.color1
       } else {
-        return colorState.color2;
+        return colorState.color2
       }
     }
-    return colorState.color;
-  };
+    return colorState.color
+  }
 
-  const onImageChange = (e: any) => {
-    colorDispatch({ type: 'SET_IMAGE', payload: e.target.value });
-  };
+  const onImageChange= (e:any)=>{
+    colorDispatch({ type: 'SET_IMAGE', payload: e.target.value })
+  }
+
 
   const getOpacity = (): number => {
     if (colorState.gradient) {
       if (colorState.selectedColor === 1) {
-        return colorState.opacity1;
+        return colorState.opacity1
       } else {
-        return colorState.opacity2;
+        return colorState.opacity2
       }
     }
-    return colorState.opacity;
-  };
+    return colorState.opacity
+  }
 
   const changeOpacity = (value: number): void => {
     if (colorState.gradient) {
       if (colorState.selectedColor === 1) {
-        colorDispatch({ type: 'SET_OPACITY1', payload: value });
+        colorDispatch({ type: 'SET_OPACITY1', payload: value })
       } else {
-        colorDispatch({ type: 'SET_OPACITY2', payload: value });
+        colorDispatch({ type: 'SET_OPACITY2', payload: value })
       }
     } else {
-      colorDispatch({ type: 'SET_OPACITY', payload: value });
+      colorDispatch({ type: 'SET_OPACITY', payload: value })
     }
-  };
+  }
 
   return (
     <Popover>
       <PopoverTrigger asChild>
         <div
-          className="w-12 rounded border cursor-pointer"
+          className="w-12  rounded border cursor-pointer"
           style={{
             background: state.editor.selectedElement.styles[PropId as keyof React.CSSProperties],
           }}
         />
+
       </PopoverTrigger>
       <PopoverContent className="w-60 max-h-96 overflow-y-auto p-4 flex flex-col gap-4">
+        {/* <HexColorPicker color={color} onChange={handleColorChange} /> */}
         <Tabs defaultValue={'solid'} className="w-full">
+
+
           <TabsList className="w-full mb-4 sticky top-0 z-[99]">
             <TabsTrigger className="flex-1" value="solid">
               Solid
             </TabsTrigger>
-            {(PropId === 'background' || PropId === 'backgroundColor') && (
-              <TabsTrigger className="flex-1" value="gradient">
-                Gradient
-              </TabsTrigger>
-            )}
+            {(PropId === 'background' || PropId === 'backgroundColor') && <TabsTrigger className="flex-1" value="gradient">
+              Gradient
+            </TabsTrigger>}
             <TabsTrigger className="flex-1" value="custom">
               Custom
             </TabsTrigger>
-            {bgImage && (
-              <TabsTrigger className="flex-1" value="image">
-                Image
-              </TabsTrigger>
-            )}
+            {bgImage && <TabsTrigger className="flex-1" value="image">
+              Image
+            </TabsTrigger>}
+
           </TabsList>
+
 
           <TabsContent value="solid" className="flex flex-wrap gap-1 mt-0">
             {solids.map((s) => (
@@ -309,11 +356,7 @@ const BackgroundColorPicker = ({ dispatch, state, bgImage = false, id: PropId }:
                 key={s}
                 style={{ background: s }}
                 className="rounded-md h-6 w-6 cursor-pointer active:scale-105"
-                onClick={() => {
-                  colorDispatch({ type: 'SET_COLOR', payload: s });
-                  colorDispatch({ type: 'SET_GRADIENT', payload: false });
-                  handleColorChange(s);
-                }}
+                onClick={() => handleColorChange(s)}
               />
             ))}
           </TabsContent>
@@ -329,6 +372,8 @@ const BackgroundColorPicker = ({ dispatch, state, bgImage = false, id: PropId }:
                 />
               ))}
             </div>
+
+
           </TabsContent>
 
           <TabsContent value="image" className="mt-0">
@@ -342,6 +387,8 @@ const BackgroundColorPicker = ({ dispatch, state, bgImage = false, id: PropId }:
                 />
               ))}
             </div>
+
+
           </TabsContent>
 
           <TabsContent value="custom">
@@ -349,6 +396,7 @@ const BackgroundColorPicker = ({ dispatch, state, bgImage = false, id: PropId }:
               className="scale-75"
               color={colorValue()}
               onChange={handleCustomColorChange}
+
             />
             <Label className="text-muted-foreground">Opacity</Label>
             <Slider
@@ -357,76 +405,91 @@ const BackgroundColorPicker = ({ dispatch, state, bgImage = false, id: PropId }:
               step={0.01}
               onValueChange={([val]) => changeOpacity(val)}
               value={[getOpacity()]}
+
             />
 
-            {PropId === 'background' && (
-              <div className="my-4 flex justify-between">
-                <Label className="text-muted-foreground">Gradient</Label>
-                <Switch
-                  checked={colorState.gradient}
-                  onCheckedChange={() => {
-                    colorDispatch({ type: 'SET_GRADIENT', payload: !colorState.gradient });
-                  }}
-                />
-              </div>
-            )}
+            {PropId === 'background' && <div className="my-4 flex justify-between">
+              <Label className="text-muted-foreground">Gradiant</Label>
+              <Switch checked={colorState.gradient} onCheckedChange={() => {
+                colorDispatch({ type: 'SET_GRADIENT', payload: !colorState.gradient })
 
-            {PropId === 'background' && colorState.gradient && (
+              }} />
+            </div>}
+
+
+            {PropId === 'background' && colorState.gradient &&
               <>
-                <TooltipProvider>
+                <TooltipProvider
+
+                >
+
                   <Label className="text-muted-foreground">Color</Label>
-                  <Tabs
-                    value={colorState.selectedColor === 1 ? '1' : '2'}
-                    onValueChange={(val) => {
-                      colorDispatch({ type: 'SET_SELECTED_COLOR', payload: Number(val) });
-                    }}
-                  >
-                    <TabsList className="flex items-center flex-row justify-between border-[1px] rounded-md bg-transparent h-fit gap-2">
+                  <Tabs value={colorState.selectedColor === 1 ? '1' : '2'} onValueChange={(val) => {
+                    colorDispatch({ type: 'SET_SELECTED_COLOR', payload: Number(val) })
+
+                  }}>
+                    <TabsList className="flex items-center flex-row justify-between border-[1px]  rounded-md bg-transparent h-fit gap-2">
                       <Tooltip>
+
                         <TooltipTrigger>
-                          <TabsTrigger className="w-10 h-9 p-0 data-[state=active]:bg-muted" value="1">
+
+                          <TabsTrigger className="w-10 h-9 p-0 data-[state=active]:bg-muted" value="1"  >
+
                             C1
                           </TabsTrigger>
                         </TooltipTrigger>
                         <TooltipContent>Color one</TooltipContent>
                       </Tooltip>
+
                       <Tooltip>
                         <TooltipTrigger>
-                          <TabsTrigger className="w-10 h-9 p-0 data-[state=active]:bg-muted" value="2">
+
+
+                          <TabsTrigger className="w-10 h-9 p-0 data-[state=active]:bg-muted" value="2" >
                             C2
                           </TabsTrigger>
                         </TooltipTrigger>
                         <TooltipContent>Color two</TooltipContent>
                       </Tooltip>
                     </TabsList>
+
+
                   </Tabs>
                 </TooltipProvider>
 
                 <Label className="text-muted-foreground">Direction</Label>
-                <TooltipProvider>
-                  <Tabs
-                    value={colorState.direction}
-                    onValueChange={(val) => {
-                      colorDispatch({ type: 'SET_DIRECTION', payload: val });
-                    }}
-                  >
-                    <TabsList className="flex items-center flex-row justify-between border-[1px] rounded-md bg-transparent h-fit gap-2">
+                <TooltipProvider
+
+                >
+
+                  <Tabs value={colorState.direction} onValueChange={(val) => {
+                    colorDispatch({ type: 'SET_DIRECTION', payload: val })
+
+                  }}>
+                    <TabsList className="flex items-center flex-row justify-between border-[1px]  rounded-md bg-transparent h-fit gap-2">
                       <Tooltip>
+
                         <TooltipTrigger>
-                          <TabsTrigger className="w-10 h-10 p-0 data-[state=active]:bg-muted" value="to left">
+
+                          <TabsTrigger className="w-10 h-10 p-0 data-[state=active]:bg-muted" value="to left" >
+
                             <MoveLeft size={18} />
                           </TabsTrigger>
                         </TooltipTrigger>
                         <TooltipContent>To Left</TooltipContent>
                       </Tooltip>
+
                       <Tooltip>
                         <TooltipTrigger>
+
+
                           <TabsTrigger className="w-10 h-10 p-0 data-[state=active]:bg-muted" value="to right">
                             <MoveRight size={18} />
                           </TabsTrigger>
                         </TooltipTrigger>
                         <TooltipContent>To Right</TooltipContent>
                       </Tooltip>
+
                       <Tooltip>
                         <TooltipTrigger>
                           <TabsTrigger className="w-10 h-10 p-0 data-[state=active]:bg-muted" value="to top">
@@ -435,6 +498,8 @@ const BackgroundColorPicker = ({ dispatch, state, bgImage = false, id: PropId }:
                         </TooltipTrigger>
                         <TooltipContent>To Top</TooltipContent>
                       </Tooltip>
+
+
                       <Tooltip>
                         <TooltipTrigger>
                           <TabsTrigger className="w-10 h-10 p-0 data-[state=active]:bg-muted" value="to bottom">
@@ -443,7 +508,16 @@ const BackgroundColorPicker = ({ dispatch, state, bgImage = false, id: PropId }:
                         </TooltipTrigger>
                         <TooltipContent>To Bottom</TooltipContent>
                       </Tooltip>
+
+
+
+
+
                     </TabsList>
+
+
+
+
                   </Tabs>
                 </TooltipProvider>
 
@@ -451,62 +525,92 @@ const BackgroundColorPicker = ({ dispatch, state, bgImage = false, id: PropId }:
                   <Label className="text-muted-foreground">Image</Label>
                   <Input
                     placeholder="https://placeholder-image.com"
+                    // id="top"
                     onChange={onImageChange}
                     value={colorState.image}
                   />
                 </div>
 
-                <Label className="text-muted-foreground">Background Size</Label>
+
+                <Label className="text-muted-foreground">BackGround Size</Label>
+
                 <TooltipProvider>
-                  <Tabs
-                    value={colorState.ImageSize}
-                    onValueChange={(val) => {
-                      colorDispatch({ type: 'SET_IMAGE_SIZE', payload: val });
-                    }}
-                  >
-                    <TabsList className="flex items-center flex-row justify-between border-[1px] rounded-md bg-transparent h-fit gap-2">
+                  <Tabs value={colorState.direction} onValueChange={(val) => {
+                    colorDispatch({ type: 'SET_IMAGE_SIZE', payload: val })
+
+                  }}>
+                    <TabsList className="flex items-center flex-row justify-between border-[1px]  rounded-md bg-transparent h-fit gap-2">
                       <Tooltip>
+
                         <TooltipTrigger>
-                          <TabsTrigger className="w-10 h-10 p-0 data-[state=active]:bg-muted" value="cover">
-                            <ChevronsLeftRightIcon size={18} />
+
+                          <TabsTrigger className="w-10 h-10 p-0 data-[state=active]:bg-muted" value="cover" >
+
+                          <ChevronsLeftRightIcon size={18} />
                           </TabsTrigger>
                         </TooltipTrigger>
                         <TooltipContent>Cover</TooltipContent>
                       </Tooltip>
+
                       <Tooltip>
                         <TooltipTrigger>
+
+
                           <TabsTrigger className="w-10 h-10 p-0 data-[state=active]:bg-muted" value="contain">
-                            <AlignVerticalJustifyCenter size={22} />
+                          <AlignVerticalJustifyCenter size={22} />
                           </TabsTrigger>
                         </TooltipTrigger>
                         <TooltipContent>Contain</TooltipContent>
                       </Tooltip>
+
                       <Tooltip>
                         <TooltipTrigger>
                           <TabsTrigger className="w-10 h-10 p-0 data-[state=active]:bg-muted" value="center">
-                            <AlignCenter size={18} />
+                          <AlignCenter size={18} />
                           </TabsTrigger>
                         </TooltipTrigger>
                         <TooltipContent>Center</TooltipContent>
                       </Tooltip>
+
+
                       <Tooltip>
                         <TooltipTrigger>
                           <TabsTrigger className="w-10 h-10 p-0 data-[state=active]:bg-muted" value="auto">
-                            <LucideImageDown size={18} />
+                              <LucideImageDown size={18} />
                           </TabsTrigger>
                         </TooltipTrigger>
                         <TooltipContent>Auto</TooltipContent>
                       </Tooltip>
+
+
+
+
+
                     </TabsList>
+
+
+
+
                   </Tabs>
                 </TooltipProvider>
-              </>
-            )}
+
+
+
+
+
+
+              </>}
+
           </TabsContent>
+
+
+
         </Tabs>
+
       </PopoverContent>
     </Popover>
   );
 };
 
 export default BackgroundColorPicker;
+
