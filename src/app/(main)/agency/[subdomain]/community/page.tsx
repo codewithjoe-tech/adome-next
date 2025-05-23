@@ -222,7 +222,7 @@ const Page: React.FC = () => {
   useEffect(() => {
     if (!selectedCommunity || selectedCommunity.id === 0) return;
 
-    const socketUrl = `ws://localhost/community/${schemaName}/ws/chat/${selectedCommunity.id}/`;
+    const socketUrl = `wss://theadome.xyz/community/${schemaName}/ws/chat/${selectedCommunity.id}/`;
     ws.current = new WebSocket(socketUrl);
 
     ws.current.onmessage = (event) => {
