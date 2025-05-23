@@ -34,6 +34,10 @@ axiosInstance.interceptors.request.use(
     const tokenExpiry = Number(getCookie(`${schemaName}_expiry`));
     const currentTime = Math.floor(Date.now() / 1000);
 
+    if (config.url?.includes("/refresh")) {
+      return config; // avoid infinite loop
+    }
+
     if (tokenExpiry && currentTime > tokenExpiry) {
       if (!isRefreshing) {
         isRefreshing = true;
@@ -43,16 +47,12 @@ axiosInstance.interceptors.request.use(
             {},
             { withCredentials: true }
           );
-          const { refresh, access, expiry } = response.data;
-          setCookie(`${schemaName}_refresh_token`, refresh);
-          setCookie(`${schemaName}_access_token`, access);
+          const { expiry } = response.data;
           setCookie(`${schemaName}_expiry`, expiry);
 
-          processQueue(null, access); // Retry queued requests
+          processQueue(null);
         } catch (err) {
-          processQueue(err, null);
-          // removeCookie(`${schemaName}_refresh_token`);
-          // removeCookie(`${schemaName}_access_token`);
+          processQueue(err);
           removeCookie(`${schemaName}_expiry`);
           throw err;
         } finally {
@@ -62,7 +62,7 @@ axiosInstance.interceptors.request.use(
 
       return new Promise((resolve, reject) => {
         failedQueue.push({
-          resolve: () => resolve(config),
+          resolve: () => resolve(axiosInstance(config)),
           reject: (err) => reject(err),
         });
       });
@@ -70,9 +70,7 @@ axiosInstance.interceptors.request.use(
 
     return config;
   },
-  (error) => {
-    return Promise.reject(error);
-  }
+  (error) => Promise.reject(error)
 );
 
 axiosInstance.interceptors.response.use(
