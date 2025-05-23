@@ -52,8 +52,8 @@ const TenantProvider = ({ children }: { children: React.ReactNode }) => {
 
   if (isLoading) return <LoadingPage />;
   if (isError) {
-    router.replace("/404");
-    return null;
+    // router.replace("/404");
+    // return null;
   }
 
   return <>{children}</>;
