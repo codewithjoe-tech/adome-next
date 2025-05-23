@@ -25,7 +25,7 @@ const TenantProvider = ({ children }: { children: React.ReactNode }) => {
     queryKey: ["tenantData" , getSubdomain()],
     queryFn: async ()=>{
       if (tenant?.id) return tenant
-      fetchTenant()
+      return await fetchTenant()
     },
     retry: false,
     // enabled : !tenant?.id
