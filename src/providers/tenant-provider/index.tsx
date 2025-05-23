@@ -16,7 +16,7 @@ const fetchTenant = async () => {
 };
 
 const TenantProvider = ({ children }: { children: React.ReactNode }) => {
-  const { tenant = null } = useSelector((state: RootState) => state.app || {});
+  const { tenant  } = useSelector((state: RootState) => state.app );
 
   // if (tenant?.id) return <>{children}</>;
   const dispatch = useDispatch();
