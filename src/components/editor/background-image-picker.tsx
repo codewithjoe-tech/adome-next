@@ -103,18 +103,19 @@ const BackgroundColorPicker = ({ dispatch, state, bgImage = false, id: PropId }:
 
 
   const initialState: ColorState = {
-  color: parseBackground(background as string).color || '', // Use parsed solid color
-  opacity: parseBackground(background as string).opacity1 || 1,
-  gradient: gradient,
-  direction: direction || 'to right',
-  color1: color1 || 'rgb(255,255,255)',
-  color2: color2 || 'rgb(255,255,255)',
-  image: image,
-  opacity1: opacity1,
-  opacity2: opacity2,
-  selectedColor: 1,
-  ImageSize: ImageSize,
-};
+    color: "",
+    opacity: 1,
+    gradient: gradient,
+    direction: direction || 'to right',
+    color1: color1 || "rgb(255,255,255)",
+    color2: color2 || "rgb(255,255,255)",
+    image: image,
+    opacity1: opacity1,
+    opacity2: opacity2,
+    selectedColor: 1,
+    ImageSize : ImageSize
+  }
+
 
   const reducer = (state: ColorState, action: ColorAction): ColorState => {
     switch (action.type) {
@@ -195,45 +196,40 @@ const BackgroundColorPicker = ({ dispatch, state, bgImage = false, id: PropId }:
 
 
 
-const hexToRgba = (color: string, alpha: number): string => {
-  if (!color) return `rgba(255, 255, 255, ${alpha})`; // Default to white if color is empty
-
-  // Handle rgba
-  if (color.startsWith('rgba')) {
-    return color.replace(/[\d\.]+\)$/g, `${alpha})`);
-  }
-
-  // Handle rgb
-  if (color.startsWith('rgb')) {
-    const values = color.match(/\d+/g);
-    if (values && values.length === 3) {
-      const [r, g, b] = values;
-      return `rgba(${r}, ${g}, ${b}, ${alpha})`;
+  const hexToRgba = (color: string, alpha: number): string => {
+    if (!color) return `rgba(NaN, 0, 0, ${alpha})`;
+  
+    if (color.startsWith('rgba')) {
+      return color.replace(/[\d\.]+\)$/g, `${alpha})`);
     }
-    return `rgba(255, 255, 255, ${alpha})`; // Default to white
-  }
-
-  // Handle hex
-  if (color.startsWith('#')) {
-    let hex = color.replace('#', '');
-    if (hex.length === 3) {
-      hex = hex
-        .split('')
-        .map(c => c + c)
-        .join('');
+  
+    if (color.startsWith('rgb')) {
+      const values = color.match(/\d+/g);
+      if (values && values.length === 3) {
+        const [r, g, b] = values;
+        return `rgba(${r}, ${g}, ${b}, ${alpha})`;
+      }
+      return `rgba(0, 0, 0, ${alpha})`;
     }
-
-    if (hex.length === 6) {
+  
+    if (color.startsWith('#')) {
+      let hex = color.replace('#', '');
+      if (hex.length === 3) {
+        hex = hex.split('').map(c => c + c).join('');
+      }
+  
+      if (hex.length !== 6) return `rgba(0, 0, 0, ${alpha})`;
+  
       const r = parseInt(hex.substring(0, 2), 16);
       const g = parseInt(hex.substring(2, 4), 16);
       const b = parseInt(hex.substring(4, 6), 16);
+  
       return `rgba(${r}, ${g}, ${b}, ${alpha})`;
     }
-  }
-
-  // Fallback to white if color is invalid
-  return `rgba(255, 255, 255, ${alpha})`;
-};
+  
+    // fallback
+    return `rgba(NaN, 0, 0, ${alpha})`;
+  };
   
   // useEffect(() => {
   //   const newColor = hexToRgba(color, alpha)
