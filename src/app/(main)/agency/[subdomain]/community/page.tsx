@@ -272,6 +272,10 @@ const Page: React.FC = () => {
       console.log('WebSocket disconnected');
     };
 
+    ws.current.onerror = (err)=>{
+      console.log(err)
+    }
+
     return () => {
       ws.current?.close();
     };
