@@ -228,7 +228,7 @@ const BackgroundColorPicker = ({ dispatch, state, bgImage = false, id: PropId }:
     }
   
     // fallback
-    return `rgba(NaN, 0, 0, ${alpha})`;
+    return color;
   };
   
   // useEffect(() => {
