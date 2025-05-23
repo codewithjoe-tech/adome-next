@@ -28,7 +28,7 @@ const TenantProvider = ({ children }: { children: React.ReactNode }) => {
       fetchTenant()
     },
     retry: false,
-    enabled : !tenant?.id
+    // enabled : !tenant?.id
   });
 
   useEffect(() => {
