@@ -13,16 +13,18 @@ const axiosInstance: AxiosInstance = axios.create({
 
 let isRefreshing = false;
 let failedQueue: {
-  resolve: (value?: unknown) => void;
+  resolve: (config: InternalAxiosRequestConfig) => void;
   reject: (reason?: any) => void;
+  config: InternalAxiosRequestConfig;
 }[] = [];
 
-const processQueue = (error: any, token: string | null = null) => {
+const processQueue = (error: any) => {
   failedQueue.forEach((prom) => {
     if (error) {
       prom.reject(error);
     } else {
-      prom.resolve(token);
+      // Resolve with the original config to retry the request
+      prom.resolve(prom.config);
     }
   });
   failedQueue = [];
@@ -35,7 +37,7 @@ axiosInstance.interceptors.request.use(
     const currentTime = Math.floor(Date.now() / 1000);
 
     if (config.url?.includes("/refresh")) {
-      return config; // avoid infinite loop
+      return config; // Avoid infinite loop
     }
 
     if (tokenExpiry && currentTime > tokenExpiry) {
@@ -50,6 +52,7 @@ axiosInstance.interceptors.request.use(
           const { expiry } = response.data;
           setCookie(`${schemaName}_expiry`, expiry);
 
+          // Process queued requests
           processQueue(null);
         } catch (err) {
           processQueue(err);
@@ -62,8 +65,12 @@ axiosInstance.interceptors.request.use(
 
       return new Promise((resolve, reject) => {
         failedQueue.push({
-          resolve: () => resolve(axiosInstance(config)),
-          reject: (err) => reject(err),
+          config,
+          resolve: (updatedConfig: InternalAxiosRequestConfig) => {
+            // Retry the original request with the original config
+            resolve(axiosInstance(updatedConfig));
+          },
+          reject,
         });
       });
     }
