@@ -206,7 +206,7 @@ const BackgroundColorPicker = ({ dispatch, state, bgImage = false, id: PropId }:
       }
     }
 
-    return `rgba(255, 255, 255, ${alpha})`; // Fallback to white
+    return `rgba(0, 0, 0, 1)`; // Fallback to white
   };
 
   const handleCustomColorChange = (newColor: string) => {
