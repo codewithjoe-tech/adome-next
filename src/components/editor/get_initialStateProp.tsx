@@ -8,11 +8,37 @@ export function parseBackground(input: string) {
     opacity2: 1,
     image: '',
     ImageSize: '',
+    color: '', // Add a field for solid colors
   };
 
+  // Regex for gradients
   const gradientRegex = /linear-gradient\(\s*(to [\w\s]+),\s*rgba?\(([^)]+)\),\s*rgba?\(([^)]+)\)\)/;
+  // Regex for images
   const imageRegex = /url\("([^"]+)"\).*\/\s*(\w+)$/;
+  // Regex for solid colors (hex, rgb, or rgba)
+  const solidColorRegex = /^(#(?:[0-9a-fA-F]{3}){1,2}|rgb\(\s*\d+\s*,\s*\d+\s*,\s*\d+\s*\)|rgba\(\s*\d+\s*,\s*\d+\s*,\s*\d+\s*,\s*[\d.]+\s*\))$/;
 
+  // Check for solid color
+  const solidMatch = input.match(solidColorRegex);
+  if (solidMatch) {
+    result.color = input; // Store the solid color directly
+    if (input.startsWith('rgba')) {
+      const rgbaMatch = input.match(/rgba\(\s*(\d+)\s*,\s*(\d+)\s*,\s*(\d+)\s*,\s*([\d.]+)\s*\)/);
+      if (rgbaMatch) {
+        result.opacity1 = parseFloat(rgbaMatch[4]) || 1;
+        result.color1 = `rgb(${rgbaMatch[1]}, ${rgbaMatch[2]}, ${rgbaMatch[3]})`;
+      }
+    } else if (input.startsWith('rgb')) {
+      result.color1 = input;
+      result.opacity1 = 1;
+    } else if (input.startsWith('#')) {
+      result.color1 = input;
+      result.opacity1 = 1;
+    }
+    return result;
+  }
+
+  // Check for gradient
   const gradientMatch = input.match(gradientRegex);
   if (gradientMatch) {
     result.gradient = true;
@@ -36,6 +62,7 @@ export function parseBackground(input: string) {
     result.opacity2 = color2.a;
   }
 
+  // Check for image
   const imageMatch = input.match(imageRegex);
   if (imageMatch) {
     result.image = imageMatch[1];
