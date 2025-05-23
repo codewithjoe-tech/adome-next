@@ -39,7 +39,7 @@ const nextConfig: NextConfig = {
       {
         protocol: "http",
         hostname: "adome.codewithjoe.in", // ✅ Add this
-        pathname: "/media/**",
+        pathname: "/**",
       },
     ],
   },
