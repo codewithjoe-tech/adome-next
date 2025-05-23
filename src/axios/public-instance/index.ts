@@ -87,9 +87,9 @@ axiosInstance.interceptors.response.use(
   (error) => {
     if (error.response && error.response.status === 429) {
       error.message = "Too many attempts. Please try again later.";
-      toast.error("Too many attempts!!!",{
-        description : "You cannot request for 1 minute as you are banned for a minute"
-      })
+      // toast.error("Too many attempts!!!",{
+      //   description : "You cannot request for 1 minute as you are banned for a minute"
+      // })
     }
     return Promise.reject(error);
   }
