@@ -1,6 +1,7 @@
 "use client";
 import { store } from "@/Redux/store";
 import axios, { AxiosInstance, InternalAxiosRequestConfig, AxiosResponse } from "axios";
+import { toast } from "sonner";
 import { getCookie, setCookie, removeCookie } from "typescript-cookie";
 
 const apiUrl = process.env.NEXT_PUBLIC_API_URL;
@@ -37,7 +38,7 @@ axiosInstance.interceptors.request.use(
     const currentTime = Math.floor(Date.now() / 1000);
 
     if (config.url?.includes("/refresh")) {
-      return config; // Avoid infinite loop
+      return config; 
     }
 
     if (tokenExpiry && currentTime > tokenExpiry) {
@@ -52,10 +53,12 @@ axiosInstance.interceptors.request.use(
           const { expiry } = response.data;
           setCookie(`${schemaName}_expiry`, expiry);
 
-          // Process queued requests
           processQueue(null);
         } catch (err) {
           processQueue(err);
+          toast.warning('Logging out',{
+            description : "User is logged out successfully"
+          })
           removeCookie(`${schemaName}_expiry`);
           throw err;
         } finally {
@@ -67,7 +70,6 @@ axiosInstance.interceptors.request.use(
         failedQueue.push({
           config,
           resolve: (updatedConfig: InternalAxiosRequestConfig) => {
-            // Retry the original request with the original config
             resolve(axiosInstance(updatedConfig));
           },
           reject,
@@ -85,6 +87,9 @@ axiosInstance.interceptors.response.use(
   (error) => {
     if (error.response && error.response.status === 429) {
       error.message = "Too many attempts. Please try again later.";
+      toast.error("Too many attempts!!!",{
+        description : "You cannot request for 1 minute as you are banned for a minute"
+      })
     }
     return Promise.reject(error);
   }
