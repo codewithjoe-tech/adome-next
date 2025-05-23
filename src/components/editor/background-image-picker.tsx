@@ -93,7 +93,7 @@ const BackgroundColorPicker = ({ dispatch, state, bgImage = false, id: PropId }:
     opacity2,
     image,
     ImageSize,
-    color, // New field for solid colors
+    color,
   } = parseBackground(background as string);
 
   const initialState: ColorState = {
@@ -101,11 +101,11 @@ const BackgroundColorPicker = ({ dispatch, state, bgImage = false, id: PropId }:
     opacity: opacity1 || 1,
     gradient: gradient,
     direction: direction || 'to right',
-    color1: color1 || 'rgb(255,255,255)',
-    color2: color2 || 'rgb(255,255,255)',
+    color1: color1 || '#ffffff',
+    color2: color2 || '#ffffff',
     image: image,
-    opacity1: opacity1,
-    opacity2: opacity2,
+    opacity1: opacity1 || 1,
+    opacity2: opacity2 || 1,
     selectedColor: 1,
     ImageSize: ImageSize,
   };
@@ -145,7 +145,7 @@ const BackgroundColorPicker = ({ dispatch, state, bgImage = false, id: PropId }:
 
   const handleColorChange = (newColor: string) => {
     const styleObject = {
-      [PropId]: newColor,
+      [PropId]: newColor === 'transparent' ? '' : newColor,
     };
     dispatch({
       type: 'UPDATE_ELEMENT',
@@ -211,29 +211,33 @@ const BackgroundColorPicker = ({ dispatch, state, bgImage = false, id: PropId }:
 
   useEffect(() => {
     if (colorState.gradient) {
-      let color = `linear-gradient(${colorState.direction}, ${hexToRgba(colorState.color1, colorState.opacity1)}, ${hexToRgba(colorState.color2, colorState.opacity2)})`;
-      if (colorState.image) {
-        color += `, url("${colorState.image}") no-repeat center / ${colorState.ImageSize || 'cover'}`;
+      if (colorState.color1 && colorState.color2) {
+        let color = `linear-gradient(${colorState.direction}, ${hexToRgba(colorState.color1, colorState.opacity1)}, ${hexToRgba(colorState.color2, colorState.opacity2)})`;
+        if (colorState.image) {
+          color += `, url("${colorState.image}") no-repeat center / ${colorState.ImageSize || 'cover'}`;
+        }
+        handleColorChange(color);
       }
-      handleColorChange(color);
-    } else {
+    } else if (colorState.color) {
       const color = hexToRgba(colorState.color, colorState.opacity);
       handleColorChange(color);
+    } else {
+      handleColorChange('transparent');
     }
   }, [colorState]);
 
   const colorValue = (): string => {
     if (colorState.gradient) {
-      return colorState.selectedColor === 1 ? colorState.color1 : colorState.color2;
+      return colorState.selectedColor === 1 ? colorState.color1 || '#ffffff' : colorState.color2 || '#ffffff';
     }
-    return colorState.color || '#ffffff';
+    return colorState.color || '';
   };
 
   const getOpacity = (): number => {
     if (colorState.gradient) {
       return colorState.selectedColor === 1 ? colorState.opacity1 : colorState.opacity2;
     }
-    return colorState.opacity;
+    return colorState.opacity || 1;
   };
 
   const changeOpacity = (value: number): void => {
@@ -256,9 +260,12 @@ const BackgroundColorPicker = ({ dispatch, state, bgImage = false, id: PropId }:
     <Popover>
       <PopoverTrigger asChild>
         <div
-          className="w-12 rounded border cursor-pointer"
+          className="w-12 h-12 rounded border cursor-pointer relative overflow-hidden"
           style={{
-            background: state.editor.selectedElement.styles[PropId as keyof React.CSSProperties],
+            background: state.editor.selectedElement.styles[PropId as keyof React.CSSProperties] || 'transparent',
+            backgroundImage: !state.editor.selectedElement.styles[PropId as keyof React.CSSProperties]
+              ? `url("data:image/svg+xml,%3Csvg width='20' height='20' viewBox='0 0 20 20' xmlns='http://www.w3.org/2000/svg'%3E%3Cpath fill='%23ccc' d='M0 0h10v10H0zM10 10h10v10H10z'/%3E%3Cpath fill='%23fff' d='M10 0h10v10H10zM0 10h10v10H0z'/%3E%3C/svg%3E")`
+              : undefined,
           }}
         />
       </PopoverTrigger>

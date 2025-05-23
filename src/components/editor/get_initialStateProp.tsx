@@ -1,4 +1,4 @@
-export function parseBackground(input: string) {
+export function parseBackground(input: string | undefined) {
   const result = {
     gradient: false,
     direction: '',
@@ -8,20 +8,25 @@ export function parseBackground(input: string) {
     opacity2: 1,
     image: '',
     ImageSize: '',
-    color: '', // Add a field for solid colors
+    color: '', // For solid colors
   };
 
-  // Regex for gradients
-  const gradientRegex = /linear-gradient\(\s*(to [\w\s]+),\s*rgba?\(([^)]+)\),\s*rgba?\(([^)]+)\)\)/;
+  // Handle empty or undefined input
+  if (!input || input.trim() === '') {
+    return result;
+  }
+
+  // Regex for gradients (supports rgb, rgba, and hex colors)
+  const gradientRegex = /linear-gradient\(\s*(to [\w\s]+),\s*(rgba?\([^)]+\)|#[0-9a-fA-F]{3,6}),\s*(rgba?\([^)]+\)|#[0-9a-fA-F]{3,6})\)/;
   // Regex for images
   const imageRegex = /url\("([^"]+)"\).*\/\s*(\w+)$/;
   // Regex for solid colors (hex, rgb, or rgba)
-  const solidColorRegex = /^(#(?:[0-9a-fA-F]{3}){1,2}|rgb\(\s*\d+\s*,\s*\d+\s*,\s*\d+\s*\)|rgba\(\s*\d+\s*,\s*\d+\s*,\s*\d+\s*,\s*[\d.]+\s*\))$/;
+  const solidColorRegex = /^(#(?:[0-9a-fA-F]{3}){1,2}|rgb\(\s*\d+\s*,\s*\d+\s*,\s*\d+\s*\)|rgba\(\s*\d+\s*,\s*\d+\s*,\s*[\d.]+\s*\))$/;
 
   // Check for solid color
   const solidMatch = input.match(solidColorRegex);
   if (solidMatch) {
-    result.color = input; // Store the solid color directly
+    result.color = input;
     if (input.startsWith('rgba')) {
       const rgbaMatch = input.match(/rgba\(\s*(\d+)\s*,\s*(\d+)\s*,\s*(\d+)\s*,\s*([\d.]+)\s*\)/);
       if (rgbaMatch) {
@@ -44,13 +49,45 @@ export function parseBackground(input: string) {
     result.gradient = true;
     result.direction = gradientMatch[1];
 
-    const parseColor = (rgbaStr: string) => {
-      const parts = rgbaStr.split(',').map(part => part.trim());
-      const r = parseInt(parts[0], 10) || 0;
-      const g = parseInt(parts[1], 10) || 0;
-      const b = parseInt(parts[2], 10) || 0;
-      const a = parseFloat(parts[3]) || 1;
-      return { r, g, b, a };
+    const parseColor = (colorStr: string) => {
+      if (colorStr.startsWith('rgba')) {
+        const parts = colorStr.match(/rgba\(\s*(\d+)\s*,\s*(\d+)\s*,\s*(\d+)\s*,\s*([\d.]+)\s*\)/);
+        if (parts) {
+          return {
+            r: parseInt(parts[1], 10),
+            g: parseInt(parts[2], 10),
+            b: parseInt(parts[3], 10),
+            a: parseFloat(parts[4]) || 1,
+          };
+        }
+      } else if (colorStr.startsWith('rgb')) {
+        const parts = colorStr.match(/rgb\(\s*(\d+)\s*,\s*(\d+)\s*,\s*(\d+)\s*\)/);
+        if (parts) {
+          return {
+            r: parseInt(parts[1], 10),
+            g: parseInt(parts[2], 10),
+            b: parseInt(parts[3], 10),
+            a: 1,
+          };
+        }
+      } else if (colorStr.startsWith('#')) {
+        let hex = colorStr.replace('#', '');
+        if (hex.length === 3) {
+          hex = hex
+            .split('')
+            .map(c => c + c)
+            .join('');
+        }
+        if (hex.length === 6) {
+          return {
+            r: parseInt(hex.substring(0, 2), 16),
+            g: parseInt(hex.substring(2, 4), 16),
+            b: parseInt(hex.substring(4, 6), 16),
+            a: 1,
+          };
+        }
+      }
+      return { r: 255, g: 255, b: 255, a: 1 }; // Fallback to white
     };
 
     const color1 = parseColor(gradientMatch[2]);
