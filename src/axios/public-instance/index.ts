@@ -51,6 +51,8 @@ axiosInstance.interceptors.request.use(
             { withCredentials: true }
           );
           const { expiry } = response.data;
+          setCookie(`${schemaName}_access_token`, expiry);
+          setCookie(`${schemaName}_refresh_token`, expiry);
           setCookie(`${schemaName}_expiry`, expiry);
 
           processQueue(null);
