@@ -34,12 +34,13 @@ try{
 
 const TenantUserProvider = ({ children }: Props) => {
   const {user} = useSelector((state:RootState)=>state.user)
-  if (user?.id) return <>{children}</>;
+  // if (user?.id) return <>{children}</>;
   const dispatch = useDispatch();
   const { data, isLoading, isError,  } = useQuery({
     queryKey: ["tenantUser"],
     queryFn: fetchTenantUser,
     retry: false,
+     enabled: !user?.id,
   });
   const router = useRouter()
   useEffect(() => {

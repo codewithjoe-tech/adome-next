@@ -11,25 +11,27 @@ import { useEffect } from "react";
 import { useDispatch, useSelector } from "react-redux";
 
 const fetchTenant = async () => {
-  const response = await axiosInstance.get(`tenantData/${getSubdomain()}/metadata`);
+  const response = await axiosInstance.get(`tenant/${getSubdomain()}/metadata`);
   return response.data;
 };
 
 const TenantProvider = ({ children }: { children: React.ReactNode }) => {
-  const {tenant } = useSelector((state:RootState)=>state.app)
-  if (tenant?.id) return <>{children}</>;
+  const { tenant = null } = useSelector((state: RootState) => state.app || {});
+
+  // if (tenant?.id) return <>{children}</>;
   const dispatch = useDispatch();
   const router = useRouter();
   const { data: tenantData, isLoading, isError } = useQuery({
     queryKey: ["tenantData" , getSubdomain()],
     queryFn: fetchTenant,
     retry: false,
+    enabled : !tenant?.id
   });
 
   useEffect(() => {
     if (tenantData?.logo) {
       console.log(tenantData)
-      dispatch(setAppInfo({ tenantData, schemaName:tenantData.subdomain }));
+      dispatch(setAppInfo({ tenant : tenantData, schemaName:tenantData.subdomain }));
 
       // Remove existing favicons properly
       const existingIcons = document.querySelectorAll("link[rel='icon'], link[rel='shortcut icon']");

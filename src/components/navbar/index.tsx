@@ -33,6 +33,7 @@ const Navbar = () => {
   const { user, isLoggedIn } = useSelector((state: RootState) => state.user)
   const isAdmin = user?.is_admin || user?.is_staff
   if (pathName === '/' || pathName.startsWith('/admin') || pathName.startsWith("/login")) return
+  // if (!tenant) return null; 
 
   const handleLogout = async () => {
     const response = await axiosInstance.post(`user/${schemaName}/logout`)
@@ -50,13 +51,13 @@ const Navbar = () => {
     { label: 'Home', href: '/' },
     ...(expiry && isAdmin ? [{ label: 'Admin', href: '/admin' }] : []),
     { label: 'Blog', href: '/blog' },
-    ...((expiry && tenant.subscription_plan === '2') ? [{ label: 'Communities', href: '/community' }] : []),
-    ...((tenant.subscription_plan === '2') ? [{ label: 'Course', href: '/courses' }] : []),
+    ...((expiry && tenant?.subscription_plan === '2') ? [{ label: 'Communities', href: '/community' }] : []),
+    ...((tenant?.subscription_plan === '2') ? [{ label: 'Course', href: '/courses' }] : []),
   ]
 
   return (
     <nav className="w-full px-6 py-4 flex justify-between items-center border-b border-border z-[999] bg-black sticky top-0">
-      <p className="text-2xl font-bold">{tenant.name}.</p>
+      <p className="text-2xl font-bold">{tenant?.name}.</p>
 
       <div className="hidden lg:flex gap-4">
         {navItems.map((item) => (
@@ -84,7 +85,7 @@ const Navbar = () => {
                 {user.user.full_name}
               </DropdownMenuLabel>
               <DropdownMenuSeparator />
-              {tenant.subscription_plan === '2' && <DropdownMenuItem
+              {tenant?.subscription_plan === '2' && <DropdownMenuItem
                 onClick={() => {
                   router.push('/my-courses')
                 }}
