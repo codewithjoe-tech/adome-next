@@ -1,10 +1,12 @@
 "use client"
 
 import React, { useState } from 'react';
+import { boolean } from 'zod';
 
 type Props = {
   message: string;
   link?: any
+  isOptimistic: null | boolean
   
 };
 
@@ -75,6 +77,7 @@ const LinkedText = ({ message, link }: Props) => {
   const renderLinkCard = () => {
     // if (!linkUrl || !link || (!link.title && !link.description && !link.image)) {
     //   return null;
+   if(!(link?.image)) return null
      const [imageError, setImageError] = useState(false);
     // }
 

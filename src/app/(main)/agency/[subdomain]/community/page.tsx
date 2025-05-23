@@ -12,6 +12,7 @@ import withSubscriptionCheck from '@/HOC/subscription-check';
 import Messages from './_components/messages';
 import CommunitySidebar from './_components/community-sidebar';
 import { extractUrl } from '@/constants';
+import { v4 as uuidv4 } from 'uuid';
 
 interface Community {
   id: number;
@@ -34,6 +35,7 @@ interface Message {
 const Page: React.FC = () => {
   const ws = useRef<WebSocket | null>(null);
   const { schemaName } = useSelector((state: RootState) => state.app);
+  const { user } = useSelector((state: RootState) => state.user);
   const hasScrolledInitially = useRef(false);
   const queryClient = useQueryClient();
   const messagesContainerRef = useRef<HTMLDivElement>(null);
@@ -90,7 +92,7 @@ const Page: React.FC = () => {
         ? currentPage + 1
         : undefined;
     }
-,    
+    ,
     enabled: !!selectedCommunity && selectedCommunity.id > 0,
     initialPageParam: 1,
   });
@@ -129,33 +131,87 @@ const Page: React.FC = () => {
       hasScrolledInitially.current = true;
     }
   }, [messageData]);
-  
-  
 
-const linkMetadata = async (link:string)=>{
-  const response = await axiosInstance.get(`community/${schemaName}/get-link-data?url=${link}`)
-  return response.data
-}
+
+
+  const linkMetadata = async (link: string) => {
+  try{
+      const response = await axiosInstance.get(`community/${schemaName}/get-link-data?url=${link}`)
+    return response.data
+  }catch{
+    return null
+  }
+  }
 
   const handleSendMessage = async (e: FormEvent<HTMLFormElement>) => {
     e.preventDefault();
-    if (newMessage.trim()) {
-      if (ws.current?.readyState === WebSocket.OPEN) {
-        const link = extractUrl(newMessage)
-        let data = null;
-        if(link){
-           data = await linkMetadata(link)
-        }
+    if (!newMessage.trim() || !selectedCommunity) return;
 
-        ws.current?.send(JSON.stringify({ content: newMessage, contenttype: "1" ,link:data?.title ? data : null }));
+    const optimisticUUID = uuidv4();
+
+    const tempMessage = {
+      id: optimisticUUID,
+      optimistic_uuid: optimisticUUID,
+      user: user?.id,
+      current_time: new Date().toISOString(),
+      content: newMessage,
+      isOptimistic: true,
+      profile_pic : user?.user?.profile_pic,
+      contenttype : "1",
+      link : extractUrl(newMessage)
+    };
+
+    queryClient.setQueryData(['get-messages', selectedCommunity.id], (oldData: any) => {
+      if (!oldData) return;
+      const newPages = oldData.pages.map((page: any, index: number) =>
+        index === 0 ? { ...page, results: [tempMessage, ...page.results] } : page
+      );
+      return { ...oldData, pages: newPages };
+    });
+    const shouldScroll = isUserNearBottom();
+     if (shouldScroll) {
+        setTimeout(() => {
+          messagesContainerRef.current?.scrollTo({
+            top: messagesContainerRef.current.scrollHeight,
+            behavior: 'smooth',
+          });
+        }, 100);
       }
-      setNewMessage('');
-      setTimeout(() => {
-        messagesContainerRef.current?.scrollTo({
-          top: messagesContainerRef.current.scrollHeight,
-          behavior: 'smooth',
-        });
-      }, 100);
+
+    setNewMessage('');
+
+    // if (shouldScroll) {
+    //   setTimeout(() => {
+    //     messagesContainerRef.current?.scrollTo({
+    //       top: messagesContainerRef.current.scrollHeight,
+    //       behavior: 'smooth',
+    //     });
+    //   }, 100);
+    // }
+
+    try {
+      const link = extractUrl(newMessage);
+      const linkData = link ? await linkMetadata(link) : null;
+
+      if (ws.current?.readyState === WebSocket.OPEN) {
+        ws.current.send(
+          JSON.stringify({
+            content: newMessage,
+            contenttype: "1",
+            optimistic_uuid: optimisticUUID,
+            link: linkData?.title ? linkData : null,
+          })
+        );
+      }
+    } catch (error) {
+      queryClient.setQueryData(['get-messages', selectedCommunity.id], (oldData: any) => {
+        if (!oldData) return;
+        const newPages = oldData.pages.map((page: any) => ({
+          ...page,
+          results: page.results.filter((msg: any) => msg.optimistic_uuid !== optimisticUUID),
+        }));
+        return { ...oldData, pages: newPages };
+      });
     }
   };
 
@@ -171,13 +227,29 @@ const linkMetadata = async (link:string)=>{
 
     ws.current.onmessage = (event) => {
       const shouldScroll = isUserNearBottom();
-      const message = JSON.parse(event.data);
-      console.log(message)
+      const message = JSON.parse(event.data)?.message;
+
+      if (!message) return;
 
       queryClient.setQueryData(['get-messages', selectedCommunity.id], (oldData: any) => {
-        const newPages = oldData.pages.map((page: any, index: number) =>
-          index === 0 ? { ...page, results: [message.message , ...page.results, ] } : page
-        );
+        if (!oldData) return;
+
+        const newPages = oldData.pages.map((page: any, index: number) => {
+          if (index !== 0) return page;
+
+          const updatedResults = page.results.map((msg: any) =>
+            msg.optimistic_uuid && msg.optimistic_uuid === message.optimistic_uuid
+              ? { ...message, replacedOptimistic: true }
+              : msg
+          );
+
+          const hasReplaced = updatedResults.some((msg:any) => msg.id === message.id);
+          return {
+            ...page,
+            results: hasReplaced ? updatedResults : [message, ...updatedResults],
+          };
+        });
+
         return { ...oldData, pages: newPages };
       });
 
@@ -190,6 +262,7 @@ const linkMetadata = async (link:string)=>{
         }, 100);
       }
     };
+
 
     ws.current.onopen = () => {
       console.log('WebSocket connected');
@@ -208,7 +281,7 @@ const linkMetadata = async (link:string)=>{
 
   return (
     <div className="flex h-[90dvh] bg-background">
-          <CommunitySidebar communities={communities} selectedCommunity={selectedCommunity} setSelectedCommunity={setSelectedCommunity} />
+      <CommunitySidebar communities={communities} selectedCommunity={selectedCommunity} setSelectedCommunity={setSelectedCommunity} />
 
       <div className="flex-1 flex flex-col">
         <div className="p-4 border-b border-border bg-card">
@@ -217,18 +290,18 @@ const linkMetadata = async (link:string)=>{
 
         <div ref={messagesContainerRef} className="flex-1 p-4 overflow-y-auto">
           {isFetchingNextPage && (
-           <Spinner size={'small'} />
+            <Spinner size={'small'} />
           )}
           {messages.length > 0 ? (
             messages.map((message: any) => (
-       <Messages key={message.id} message={message} />
+              <Messages key={message.id} message={message} />
             ))
           ) : (
             <p className="text-muted-foreground">No messages yet.</p>
           )}
         </div>
 
-       {communities && communities.length > 0 && ( <div className="p-4 border-t border-border bg-card">
+        {communities && communities.length > 0 && (<div className="p-4 border-t border-border bg-card">
           <form onSubmit={handleSendMessage} className="flex items-center">
             <input
               type="text"
