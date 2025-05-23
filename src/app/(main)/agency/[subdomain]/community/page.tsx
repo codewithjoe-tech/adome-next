@@ -222,7 +222,7 @@ const Page: React.FC = () => {
   useEffect(() => {
     if (!selectedCommunity || selectedCommunity.id === 0) return;
 
-    const socketUrl = `wss://theadome.xyz/community/${schemaName}/ws/chat/${selectedCommunity.id}/`;
+    const socketUrl = `wss://adome.codewithjoe.in/community/${schemaName}/ws/chat/${selectedCommunity.id}/`;
     ws.current = new WebSocket(socketUrl);
 
     ws.current.onmessage = (event) => {
@@ -272,9 +272,9 @@ const Page: React.FC = () => {
       console.log('WebSocket disconnected');
     };
 
-    ws.current.onerror = (err)=>{
-      console.log(err)
-    }
+    // ws.current.onerror = (err)=>{
+    //   console.log(err)
+    // }
 
     return () => {
       ws.current?.close();
