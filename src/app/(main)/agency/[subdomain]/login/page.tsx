@@ -71,12 +71,11 @@ const Page = (props: Props) => {
       if (response.status === 200) {
 
         const data= response.data
-        const refresh_token:string = data.refresh
-        const access_token:string = data.access
+   
         const expiry = data.expiry
-        setCookie(`${schemaName}_refresh_token`, refresh_token)
-        // setCookie('access_token', access_token)
-        setCookie(`${schemaName}_access_token`, access_token)
+        // setCookie(`${schemaName}_refresh_token`, refresh_token)
+        // // setCookie('access_token', access_token)
+        // setCookie(`${schemaName}_access_token`, access_token)
         setCookie(`${schemaName}_expiry`, expiry)
         toast({
           title : "Success",
