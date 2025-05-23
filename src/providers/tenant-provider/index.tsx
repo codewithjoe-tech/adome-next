@@ -32,7 +32,7 @@ const TenantProvider = ({ children }: { children: React.ReactNode }) => {
   });
 
   useEffect(() => {
-    if (tenantData?.logo) {
+    if (tenantData) {
       console.log(tenantData)
       dispatch(setAppInfo({ tenant : tenantData, schemaName:tenantData.subdomain }));
 
