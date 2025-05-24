@@ -1,4 +1,4 @@
-import React, { useReducer } from "react";
+import React, { useEffect, useReducer, useRef } from "react";
 import { Popover, PopoverContent, PopoverTrigger } from "@/components/ui/popover";
 import { HexColorPicker } from "react-colorful";
 import { EditorState } from "@/providers/editor/editor-provider";
@@ -78,7 +78,7 @@ const gradients = [
 const images = [
   'url(https://images.unsplash.com/photo-1691200099282-16fd34790ade?ixlib=rb-4.0.3&ixid=M3wxMjA3fDB8MHxwaG90by1wYWdlfHx8fGVufDB8fHx8fA%3D%3D&auto=format&fit=crop&w=2532&q=90)',
   'url(https://images.unsplash.com/photo-1691226099773-b13a89a1d167?ixlib=rb-4.0.3&ixid=M3wxMjA3fDB8MHxwaG90by1wYWdlfHx8fGVufDB8fHx8fA%3D%3D&auto=format&fit=crop&w=2532&q=90)',
-  'url(https://images.unsplash.com/photo-1688822863426-8c5f9b257090?ixlib=rb-4.0.3&ixid=M3wxMjA3fDB8MHxwaG90by1wYWdlfHx8fGVufDB8fXxfA%3D%3D&auto=format&fit=crop&w=2532&q=90)',
+  'url(https://images.unsplash.com/photo-1688822863426-8c5f9b257090?ixlib=rb-4.0.3&ixid=M3wxMjA3fDB8MHxwaG90by1wYWdlfHx8fGVufDB8fHx8fA%3D%3D&auto=format&fit=crop&w=2532&q=90)',
   'url(https://images.unsplash.com/photo-1691225850735-6e4e51834cad?ixlib=rb-4.0.3&ixid=M3wxMjA3fDB8MHxwaG90by1wYWdlfHx8fGVufDB8fHx8fA%3D%3D&auto=format&fit=crop&w=2532&q=90)',
 ];
 
@@ -141,9 +141,11 @@ const BackgroundColorPicker = ({ dispatch, state, bgImage = false, id: PropId }:
   };
 
   const [colorState, colorDispatch] = useReducer(reducer, initialState);
+  const isInitialRender = useRef(true);
+  const hasUserInteracted = useRef(false);
 
   const hexToRgba = (color: string, alpha: number): string => {
-    if (!color) return `rgba(NaN, 0, 0, ${alpha})`;
+    if (!color) return `rgba(0, 0, 0, ${alpha})`;
 
     if (color.startsWith('rgba')) {
       return color.replace(/[\d\.]+\)$/g, `${alpha})`);
@@ -151,7 +153,7 @@ const BackgroundColorPicker = ({ dispatch, state, bgImage = false, id: PropId }:
 
     if (color.startsWith('rgb')) {
       const values = color.match(/\d+/g);
-      if (values && values.length === 3) {
+      if (values && values.length >= 3) {
         const [r, g, b] = values;
         return `rgba(${r}, ${g}, ${b}, ${alpha})`;
       }
@@ -173,20 +175,7 @@ const BackgroundColorPicker = ({ dispatch, state, bgImage = false, id: PropId }:
       return `rgba(${r}, ${g}, ${b}, ${alpha})`;
     }
 
-    return `rgba(NaN, 0, 0, ${alpha})`;
-  };
-
-  const computeBackgroundStyle = (): string => {
-    if (colorState.gradient) {
-      const gradientString = `linear-gradient(${colorState.direction}, ${colorState.color1.startsWith('#') ? colorState.color1 : hexToRgba(colorState.color1, colorState.opacity1)}, ${colorState.color2.startsWith('#') ? colorState.color2 : hexToRgba(colorState.color2, colorState.opacity2)})`;
-      return colorState.image
-        ? `${gradientString}, url("${colorState.image}") no-repeat center / ${colorState.ImageSize || 'cover'}`
-        : gradientString;
-    } else if (colorState.image) {
-      return `url("${colorState.image}") no-repeat center / ${colorState.ImageSize || 'cover'}`;
-    } else {
-      return colorState.color.startsWith('#') ? colorState.color : hexToRgba(colorState.color, colorState.opacity);
-    }
+    return `rgba(0, 0, 0, ${alpha})`;
   };
 
   const handleColorChange = (newColor: string) => {
@@ -210,7 +199,34 @@ const BackgroundColorPicker = ({ dispatch, state, bgImage = false, id: PropId }:
     });
   };
 
+  useEffect(() => {
+    if (isInitialRender.current) {
+      isInitialRender.current = false;
+      return;
+    }
+
+    if (!hasUserInteracted.current) {
+      return;
+    }
+
+    let color: string;
+    if (colorState.gradient) {
+      color = `linear-gradient(${colorState.direction}, ${colorState.color1.startsWith('#') ? colorState.color1 : hexToRgba(colorState.color1, colorState.opacity1)}, ${colorState.color2.startsWith('#') ? colorState.color2 : hexToRgba(colorState.color2, colorState.opacity2)})`;
+      if (colorState.image) {
+        color += `, url("${colorState.image}") no-repeat center / ${colorState.ImageSize || 'cover'}`;
+      }
+    } else if (colorState.image) {
+      color = `url("${colorState.image}") no-repeat center / ${colorState.ImageSize || 'cover'}`;
+    } else {
+      color = colorState.color.startsWith('#') ? colorState.color : hexToRgba(colorState.color, colorState.opacity);
+    }
+
+    console.log("Computed color: " + color);
+    handleColorChange(color);
+  }, [colorState]);
+
   const handleCustomColorChange = (newColor: string) => {
+    hasUserInteracted.current = true;
     if (colorState.gradient) {
       if (colorState.selectedColor === 1) {
         colorDispatch({ type: 'SET_COLOR1', payload: newColor });
@@ -220,17 +236,15 @@ const BackgroundColorPicker = ({ dispatch, state, bgImage = false, id: PropId }:
     } else {
       colorDispatch({ type: 'SET_COLOR', payload: newColor });
     }
-
-    handleColorChange(computeBackgroundStyle());
   };
 
   const onImageChange = (e: any) => {
-    const newImage = e.target.value;
-    colorDispatch({ type: 'SET_IMAGE', payload: newImage });
-    handleColorChange(computeBackgroundStyle());
+    hasUserInteracted.current = true;
+    colorDispatch({ type: 'SET_IMAGE', payload: e.target.value });
   };
 
   const changeOpacity = (value: number) => {
+    hasUserInteracted.current = true;
     if (colorState.gradient) {
       if (colorState.selectedColor === 1) {
         colorDispatch({ type: 'SET_OPACITY1', payload: value });
@@ -240,23 +254,26 @@ const BackgroundColorPicker = ({ dispatch, state, bgImage = false, id: PropId }:
     } else {
       colorDispatch({ type: 'SET_OPACITY', payload: value });
     }
-
-    handleColorChange(computeBackgroundStyle());
   };
 
   const handleGradientToggle = () => {
+    hasUserInteracted.current = true;
     colorDispatch({ type: 'SET_GRADIENT', payload: !colorState.gradient });
-    handleColorChange(computeBackgroundStyle());
   };
 
   const handleDirectionChange = (val: string) => {
+    hasUserInteracted.current = true;
     colorDispatch({ type: 'SET_DIRECTION', payload: val });
-    handleColorChange(computeBackgroundStyle());
   };
 
   const handleImageSizeChange = (val: string) => {
+    hasUserInteracted.current = true;
     colorDispatch({ type: 'SET_IMAGE_SIZE', payload: val });
-    handleColorChange(computeBackgroundStyle());
+  };
+
+  const handleImageSelect = (imageUrl: string) => {
+    hasUserInteracted.current = true;
+    colorDispatch({ type: 'SET_IMAGE', payload: imageUrl });
   };
 
   const colorValue = (): string => {
@@ -343,7 +360,7 @@ const BackgroundColorPicker = ({ dispatch, state, bgImage = false, id: PropId }:
                   key={s}
                   style={{ backgroundImage: s }}
                   className="rounded-md bg-cover bg-center h-12 w-full cursor-pointer active:scale-105"
-                  onClick={() => handleColorChange(s)}
+                  onClick={() => handleImageSelect(s)}
                 />
               ))}
             </div>
@@ -378,6 +395,7 @@ const BackgroundColorPicker = ({ dispatch, state, bgImage = false, id: PropId }:
                   <Tabs
                     value={colorState.selectedColor === 1 ? '1' : '2'}
                     onValueChange={(val) => {
+                      hasUserInteracted.current = true;
                       colorDispatch({ type: 'SET_SELECTED_COLOR', payload: Number(val) });
                     }}
                   >
