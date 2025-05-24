@@ -240,7 +240,21 @@ const BackgroundColorPicker = ({ dispatch, state, bgImage = false, id: PropId }:
 
   const onImageChange = (e: any) => {
     hasUserInteracted.current = true;
-    colorDispatch({ type: 'SET_IMAGE', payload: e.target.value });
+    const newImage = e.target.value;
+    colorDispatch({ type: 'SET_IMAGE', payload: newImage });
+
+    let color: string;
+    if (colorState.gradient) {
+      color = `linear-gradient(${colorState.direction}, ${colorState.color1.startsWith('#') ? colorState.color1 : hexToRgba(colorState.color1, colorState.opacity1)}, ${colorState.color2.startsWith('#') ? colorState.color2 : hexToRgba(colorState.color2, colorState.opacity2)})`;
+      if (newImage) {
+        color += `, url("${newImage}") no-repeat center / ${colorState.ImageSize || 'cover'}`;
+      }
+    } else {
+      color = newImage ? `url("${newImage}") no-repeat center / ${colorState.ImageSize || 'cover'}` : colorState.color.startsWith('#') ? colorState.color : hexToRgba(colorState.color, colorState.opacity);
+    }
+
+    console.log("Image change color: " + color);
+    handleColorChange(color);
   };
 
   const changeOpacity = (value: number) => {
@@ -273,7 +287,20 @@ const BackgroundColorPicker = ({ dispatch, state, bgImage = false, id: PropId }:
 
   const handleImageSelect = (imageUrl: string) => {
     hasUserInteracted.current = true;
-    colorDispatch({ type: 'SET_IMAGE', payload: imageUrl });
+    colorDispatch({ type: 'SET_IMAGE', payload: imageUrl.replace(/^url\(["']?/, '').replace(/["']?\)$/, '') });
+
+    let color: string;
+    if (colorState.gradient) {
+      color = `linear-gradient(${colorState.direction}, ${colorState.color1.startsWith('#') ? colorState.color1 : hexToRgba(colorState.color1, colorState.opacity1)}, ${colorState.color2.startsWith('#') ? colorState.color2 : hexToRgba(colorState.color2, colorState.opacity2)})`;
+      if (imageUrl) {
+        color += `, ${imageUrl}`;
+      }
+    } else {
+      color = imageUrl;
+    }
+
+    console.log("Image select color: " + color);
+    handleColorChange(color);
   };
 
   const colorValue = (): string => {
