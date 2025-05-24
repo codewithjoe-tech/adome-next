@@ -1,4 +1,4 @@
-"use client"
+'use client'
 
 import { useEditor } from '@/providers/editor/editor-provider'
 import React from 'react'
@@ -8,14 +8,21 @@ import {
   AccordionItem,
   AccordionTrigger,
 } from '@/components/ui/accordion'
+import { File, Folder, FolderOpen } from 'lucide-react'
 
 type Props = {}
 
 const Layers = (props: Props) => {
-  const { state } = useEditor()
+  const { state , dispatch} = useEditor()
 
-  // Function to handle click on any item and log its details
-  const handleItemClick = (item: any) => {
+  const handleItemClick = (item: any , e:React.MouseEvent) => {
+    e.stopPropagation()
+    dispatch({
+      type: 'CHANGE_CLICKED_ELEMENT',
+      payload: {
+        elementDetails: item,
+      },
+    })
     console.log('Clicked item:', {
       id: item.id,
       name: item.name,
@@ -25,52 +32,62 @@ const Layers = (props: Props) => {
     })
   }
 
-  // Recursive function to render the tree
   const renderTree = (elements: any[], depth: number = 0) => {
-    return elements.map((item) => {
-      const isContainer = ['__body', 'container', '2Col'].includes(item.type)
+    return (
+      <ul className="w-full space-y-0.5">
+        {elements.map((element) => {
+          const isContainer = ['__body', 'container', '2Col'].includes(element.type)
+          const isSelected = state.editor.selectedElement?.id === element.id
+          const selectedClass = isSelected ? 'bg-primary text-primary-foreground' : ''
 
-      if (isContainer) {
-        return (
-          <AccordionItem key={item.id} value={item.id}>
-            <AccordionTrigger
-              className="text-sm text-gray-200 hover:bg-gray-700 px-2 py-1 rounded"
-              onClick={() => handleItemClick(item)}
-            >
-              <span className="flex items-center">
-                <span className="mr-2">📁</span>
-                {item.name} ({item.type})
-              </span>
-            </AccordionTrigger>
-            <AccordionContent className="pl-4">
-              {Array.isArray(item.content) && item.content.length > 0 ? (
-                renderTree(item.content, depth + 1)
-              ) : (
-                <div className="text-xs text-gray-400 pl-4">No children</div>
-              )}
-            </AccordionContent>
-          </AccordionItem>
-        )
-      } else {
-        return (
-          <div
-            key={item.id}
-            className="text-sm text-gray-400 pl-6 py-1 hover:bg-gray-700 rounded cursor-pointer"
-            onClick={() => handleItemClick(item)}
-          >
-            <span className="flex items-center">
-              <span className="mr-2">📄</span>
-              {item.name} ({item.type})
-            </span>
-          </div>
-        )
-      }
-    })
+          if (isContainer) {
+            return (
+              <li key={element.id} className="w-full relative">
+                <AccordionItem value={element.id} className="border-none">
+                  <AccordionTrigger
+                    className={`group text-sm hover:bg-sidebar-accent/50 hover:text-sidebar-accent-foreground py-0.5 rounded-md transition-all animate-fade-in ${selectedClass}`}
+                    onClick={(e) => handleItemClick(element ,e)}
+                  >
+                    <span className="flex items-center pl-1">
+                      <span className="relative mr-2 h-4 w-4">
+                        <Folder className="absolute h-4 w-4 -left-1 transition-opacity duration-200 ease-in-out group-[data-state=open]:opacity-0" />
+                        <FolderOpen className="absolute h-4 w-4 -left-1 opacity-0 transition-opacity duration-200 ease-in-out group-[data-state=open]:opacity-100" />
+                      </span>
+                      {element.name} ({element.type})
+                    </span>
+                  </AccordionTrigger>
+                  <AccordionContent className="py-0 pl-5 border-l relative">
+                    {Array.isArray(element.content) && element.content.length > 0 ? (
+                      renderTree(element.content, depth + 1)
+                    ) : (
+                      <div className="text-sm text-muted-foreground py-0.5">No children</div>
+                    )}
+                  </AccordionContent>
+                </AccordionItem>
+              </li>
+            )
+          } else {
+            return (
+              <li
+                key={element.id}
+                className={`text-sm text-muted-foreground py-0.5 hover:bg-sidebar-accent/50 hover:text-sidebar-accent-foreground rounded-md cursor-pointer transition-all animate-fade-in relative ${selectedClass}`}
+                onClick={(e) => handleItemClick(element , e)}
+              >
+                <span className="flex items-center">
+                  <File className="mr-2 h-4 w-4" />
+                  {element.name} ({element.type})
+                </span>
+              </li>
+            )
+          }
+        })}
+      </ul>
+    )
   }
 
   return (
-    <div className="w-64 bg-gray-900 text-white h-full p-4">
-      <h2 className="text-lg font-semibold mb-4">Website Structure</h2>
+    <div className="w-full bg-transparent text-sidebar-foreground h-full p-3 pl-6">
+      <h3 className="font-bold mb-4">Web Structure</h3>
       <Accordion type="multiple" className="w-full">
         {renderTree(state.editor.elements)}
       </Accordion>
