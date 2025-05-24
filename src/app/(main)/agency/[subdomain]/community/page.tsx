@@ -153,7 +153,7 @@ const Page: React.FC = () => {
       id: optimisticUUID,
       optimistic_uuid: optimisticUUID,
       user: user?.id,
-      current_time: new Date().toISOString(),
+      created_at: new Date().toISOString(),
       content: newMessage,
       isOptimistic: true,
       profile_pic : user?.user?.profile_pic,

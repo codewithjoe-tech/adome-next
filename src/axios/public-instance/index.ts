@@ -4,6 +4,10 @@ import axios, { AxiosInstance, InternalAxiosRequestConfig, AxiosResponse } from 
 import { toast } from "sonner";
 import { getCookie, setCookie, removeCookie } from "typescript-cookie";
 
+interface ExtendedAxiosRequestConfig extends InternalAxiosRequestConfig {
+  _retry?: boolean;
+}
+
 const apiUrl = process.env.NEXT_PUBLIC_API_URL;
 
 const axiosInstance: AxiosInstance = axios.create({
@@ -13,70 +17,50 @@ const axiosInstance: AxiosInstance = axios.create({
 });
 
 let isRefreshing = false;
-let failedQueue: {
-  resolve: (config: InternalAxiosRequestConfig) => void;
-  reject: (reason?: any) => void;
-  config: InternalAxiosRequestConfig;
-}[] = [];
-
-const processQueue = (error: any) => {
-  failedQueue.forEach((prom) => {
-    if (error) {
-      prom.reject(error);
-    } else {
-      // Resolve with the original config to retry the request
-      prom.resolve(prom.config);
-    }
-  });
-  failedQueue = [];
-};
+let refreshPromise: Promise<void> | null = null;
 
 axiosInstance.interceptors.request.use(
-  async (config: InternalAxiosRequestConfig) => {
+  async (config: ExtendedAxiosRequestConfig) => {
     const schemaName = store.getState().app.schemaName;
     const tokenExpiry = Number(getCookie(`${schemaName}_expiry`));
     const currentTime = Math.floor(Date.now() / 1000);
 
     if (config.url?.includes("/refresh")) {
-      return config; 
+      return config;
+    }
+
+    if (config._retry) {
+      return config;
     }
 
     if (tokenExpiry && currentTime > tokenExpiry) {
       if (!isRefreshing) {
         isRefreshing = true;
-        try {
-          const response = await axios.post(
-            `${apiUrl}user/${schemaName}/refresh`,
-            {},
-            { withCredentials: true }
-          );
-          const { expiry } = response.data;
-          setCookie(`${schemaName}_access_token`, expiry);
-          setCookie(`${schemaName}_refresh_token`, expiry);
-          setCookie(`${schemaName}_expiry`, expiry);
-
-          processQueue(null);
-        } catch (err) {
-          processQueue(err);
-          toast.warning('Logging out',{
-            description : "User is logged out successfully"
+        refreshPromise = axios
+          .post(`${apiUrl}/user/${schemaName}/refresh`, {}, { withCredentials: true })
+          .then((response) => {
+            const { expiry , access_token , refresh_token} = response.data;
+            setCookie(`${schemaName}_refresh_token`, refresh_token);
+            setCookie(`${schemaName}_access_token`, access_token);
+            setCookie(`${schemaName}_expiry`, expiry);
           })
-          removeCookie(`${schemaName}_expiry`);
-          throw err;
-        } finally {
-          isRefreshing = false;
-        }
+          .catch((err) => {
+            toast.warning("Logging out", {
+              description: "User is logged out successfully",
+            });
+            removeCookie(`${schemaName}_expiry`);
+            throw err;
+          })
+          .finally(() => {
+            isRefreshing = false;
+            refreshPromise = null;
+          });
       }
 
-      return new Promise((resolve, reject) => {
-        failedQueue.push({
-          config,
-          resolve: (updatedConfig: InternalAxiosRequestConfig) => {
-            resolve(axiosInstance(updatedConfig));
-          },
-          reject,
-        });
-      });
+     
+      await refreshPromise;
+      config._retry = true;
+      return axiosInstance(config); 
     }
 
     return config;
@@ -87,11 +71,11 @@ axiosInstance.interceptors.request.use(
 axiosInstance.interceptors.response.use(
   (response: AxiosResponse) => response,
   (error) => {
-    if (error.response && error.response.status === 429) {
+    if (error.response?.status === 429) {
       error.message = "Too many attempts. Please try again later.";
-      // toast.error("Too many attempts!!!",{
-      //   description : "You cannot request for 1 minute as you are banned for a minute"
-      // })
+      toast.error("Too many attempts!!!", {
+        description: "You cannot request for 1 minute as you are banned for a minute",
+      });
     }
     return Promise.reject(error);
   }
