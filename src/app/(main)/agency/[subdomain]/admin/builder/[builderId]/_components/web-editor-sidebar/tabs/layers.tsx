@@ -70,7 +70,7 @@ const Layers = (props: Props) => {
             return (
               <li
                 key={element.id}
-                className={`text-sm text-muted-foreground py-0.5 hover:bg-sidebar-accent/50 hover:text-sidebar-accent-foreground rounded-md cursor-pointer transition-all animate-fade-in relative ${selectedClass}`}
+                className={`text-sm text-muted-foreground py-0.5 ${!isSelected && "hover:bg-sidebar-accent/50 hover:text-sidebar-accent-foreground"} rounded-md cursor-pointer transition-all animate-fade-in relative ${selectedClass}`}
                 onClick={(e) => handleItemClick(element , e)}
               >
                 <span className="flex items-center">
