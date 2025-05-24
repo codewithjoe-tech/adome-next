@@ -17,22 +17,7 @@ const axiosInstance: AxiosInstance = axios.create({
 });
 
 let isRefreshing = false;
-let failedQueue: {
-  resolve: (config: ExtendedAxiosRequestConfig) => void; 
-  reject: (reason?: any) => void;
-  config: ExtendedAxiosRequestConfig;
-}[] = [];
-
-const processQueue = (error: any) => {
-  failedQueue.forEach((prom) => {
-    if (error) {
-      prom.reject(error);
-    } else {
-      prom.resolve(prom.config);
-    }
-  });
-  failedQueue = [];
-};
+let refreshPromise: Promise<void> | null = null;
 
 axiosInstance.interceptors.request.use(
   async (config: ExtendedAxiosRequestConfig) => {
@@ -51,38 +36,29 @@ axiosInstance.interceptors.request.use(
     if (tokenExpiry && currentTime > tokenExpiry) {
       if (!isRefreshing) {
         isRefreshing = true;
-        try {
-          const response = await axios.post(
-            `${apiUrl}user/${schemaName}/refresh`,
-            {},
-            { withCredentials: true }
-          );
-          const { expiry } = response.data;
-          setCookie(`${schemaName}_expiry`, expiry);
-
-          processQueue(null);
-        } catch (err) {
-          processQueue(err);
-          toast.warning("Logging out", {
-            description: "User is logged out successfully",
+        refreshPromise = axios
+          .post(`${apiUrl}/user/${schemaName}/refresh`, {}, { withCredentials: true })
+          .then((response) => {
+            const { expiry } = response.data;
+            setCookie(`${schemaName}_expiry`, expiry);
+          })
+          .catch((err) => {
+            toast.warning("Logging out", {
+              description: "User is logged out successfully",
+            });
+            removeCookie(`${schemaName}_expiry`);
+            throw err;
+          })
+          .finally(() => {
+            isRefreshing = false;
+            refreshPromise = null;
           });
-          removeCookie(`${schemaName}_expiry`);
-          throw err;
-        } finally {
-          isRefreshing = false;
-        }
       }
 
-      return new Promise((resolve, reject) => {
-        failedQueue.push({
-          config,
-          resolve: (updatedConfig: ExtendedAxiosRequestConfig) => {
-            updatedConfig._retry = true;
-            resolve(updatedConfig);
-          },
-          reject,
-        });
-      });
+      // Wait for the refresh to complete before retrying the request
+      await refreshPromise;
+      config._retry = true;
+      return axiosInstance(config); // Retry the original request
     }
 
     return config;
@@ -93,7 +69,7 @@ axiosInstance.interceptors.request.use(
 axiosInstance.interceptors.response.use(
   (response: AxiosResponse) => response,
   (error) => {
-    if (error.response && error.response.status === 429) {
+    if (error.response?.status === 429) {
       error.message = "Too many attempts. Please try again later.";
       toast.error("Too many attempts!!!", {
         description: "You cannot request for 1 minute as you are banned for a minute",
