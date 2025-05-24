@@ -13,6 +13,16 @@ import Messages from './_components/messages';
 import CommunitySidebar from './_components/community-sidebar';
 import { extractUrl } from '@/constants';
 import { v4 as uuidv4 } from 'uuid';
+import {
+  DropdownMenu,
+  DropdownMenuContent,
+  DropdownMenuItem,
+  DropdownMenuLabel,
+  DropdownMenuSeparator,
+  DropdownMenuTrigger,
+} from "@/components/ui/dropdown-menu"
+import { Plus } from 'lucide-react';
+
 
 interface Community {
   id: number;
@@ -40,6 +50,11 @@ const Page: React.FC = () => {
   const queryClient = useQueryClient();
   const messagesContainerRef = useRef<HTMLDivElement>(null);
   const [isFetchingMore, setIsFetchingMore] = useState(false);
+  const [filesOpen, setFilesOpen] = useState(false)
+  const fileInputRef = useRef<HTMLInputElement | null>(null);
+  const handleOpen = ()=>{
+    setFilesOpen(!handleOpen)
+  }
 
   const isUserNearTop = (): boolean => {
     const container = messagesContainerRef.current;
@@ -47,6 +62,7 @@ const Page: React.FC = () => {
     const threshold = 100;
     return container.scrollTop < threshold;
   };
+
 
   const isUserNearBottom = (): boolean => {
     const container = messagesContainerRef.current;
@@ -141,7 +157,84 @@ const Page: React.FC = () => {
   }catch{
     return null
   }
-  }
+}
+
+const uploadImage = async (file : FormData)=>{
+  const response = await axiosInstance.post(`mediamanager/${schemaName}/upload-tenant` , file)
+  return response.data
+}
+const handleFileChange = async (e: React.ChangeEvent<HTMLInputElement>)=>{
+  const file = e.target.files?.[0];
+    if (!file) return;
+
+   
+    if (!file.type.startsWith("image/")) {
+      alert("Please select a valid image.");
+      return;
+    }
+    const url = URL.createObjectURL(file);
+     const optimisticUUID = uuidv4();
+
+    const tempMessage = {
+      id: optimisticUUID,
+      optimistic_uuid: optimisticUUID,
+      user: user?.id,
+      created_at: new Date().toISOString(),
+      content: url,
+      isOptimistic: true,
+      profile_pic : user?.user?.profile_pic,
+      contenttype : "2",
+      link : extractUrl(newMessage)
+    };
+    queryClient.setQueryData(['get-messages', selectedCommunity.id], (oldData: any) => {
+      if (!oldData) return;
+      const newPages = oldData.pages.map((page: any, index: number) =>
+        index === 0 ? { ...page, results: [tempMessage, ...page.results] } : page
+      );
+      return { ...oldData, pages: newPages };
+    });
+     const shouldScroll = isUserNearBottom();
+     if (shouldScroll) {
+        setTimeout(() => {
+          messagesContainerRef.current?.scrollTo({
+            top: messagesContainerRef.current.scrollHeight,
+            behavior: 'smooth',
+          });
+        }, 100);
+      }
+
+
+    // console.log("Uploading:", file);
+    const formData = new FormData();
+    formData.append("image", file);
+    formData.append("content_type", "chat");
+    try {
+      const data = await uploadImage(formData)
+        if (ws.current?.readyState === WebSocket.OPEN) {
+        ws.current.send(
+          JSON.stringify({
+            content: data?.image,
+            contenttype: "2",
+            optimistic_uuid: optimisticUUID,
+            link:  null,
+          })
+        );
+      }
+      
+    }catch{
+ queryClient.setQueryData(['get-messages', selectedCommunity.id], (oldData: any) => {
+        if (!oldData) return;
+        const newPages = oldData.pages.map((page: any) => ({
+          ...page,
+          results: page.results.filter((msg: any) => msg.optimistic_uuid !== optimisticUUID),
+        }));
+        return { ...oldData, pages: newPages };
+      });
+    }
+
+
+
+}
 
   const handleSendMessage = async (e: FormEvent<HTMLFormElement>) => {
     e.preventDefault();
@@ -281,7 +374,7 @@ const Page: React.FC = () => {
 
   return (
     <div className="flex h-[90dvh] bg-background">
-      <CommunitySidebar communities={communities} selectedCommunity={selectedCommunity} setSelectedCommunity={setSelectedCommunity} />
+      <CommunitySidebar communities={communities} selectedCommunity={selectedCommunity} setSelectedCommunity={setSelectedCommunity} communitiesLoading={communitiesLoading} />
 
       <div className="flex-1 flex flex-col">
         <div className="p-4 border-b border-border bg-card">
@@ -302,7 +395,31 @@ const Page: React.FC = () => {
         </div>
 
         {communities && communities.length > 0 && (<div className="p-4 border-t border-border bg-card">
-          <form onSubmit={handleSendMessage} className="flex items-center">
+          <form onSubmit={handleSendMessage} className="flex items-center gap-2">
+            <DropdownMenu open={filesOpen} onOpenChange={(open)=>{setFilesOpen(open)}}>
+  <DropdownMenuTrigger><Plus className={`transition-transform duration-300 ease-in-out ${filesOpen ? "rotate-45" : "rotate-0"}`} /></DropdownMenuTrigger>
+  <DropdownMenuContent  align='start'>
+   
+    <DropdownMenuItem onClick={()=>{
+    fileInputRef.current?.click()
+    }}>
+                      Images
+
+    </DropdownMenuItem>
+    <DropdownMenuItem>Videos</DropdownMenuItem>
+    <DropdownMenuItem>Documents</DropdownMenuItem>
+  </DropdownMenuContent>
+</DropdownMenu>
+
+
+                      <input
+                        type="file"
+                        accept="image/*"
+                        className="hidden"
+                        onChange={handleFileChange}
+                        ref={fileInputRef}
+                      
+                      />
             <input
               type="text"
               value={newMessage}

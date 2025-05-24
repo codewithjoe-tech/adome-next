@@ -5,6 +5,7 @@ import React from 'react'
 import LinkedText from './message-components/linked-text'
 import { useSelector } from 'react-redux'
 import { RootState } from '@/Redux/store'
+import ImageMessage from './message-components/image-message'
 
 type Props = {
     message : any
@@ -29,6 +30,7 @@ const Messages = ({message}: Props) => {
                   </div>
                  {/* { (message?.contenttype ==='1' && !message?.link) && <p className={`${ message?.isOptimistic ? "text-gray-400" :"text-foreground"}`}>{message?.content}</p>} */}
                  { (message?.contenttype ==='1' ) && (<LinkedText message={message?.content} isOptimistic ={message?.isOptimistic} link={message.link}/>)}
+                 { (message?.contenttype ==='2' ) && (<ImageMessage imageUrl={message?.content} isOptimistic={message?.isOptimistic}/>)}
                 </div>
               </div>
   )
