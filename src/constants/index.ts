@@ -44,7 +44,7 @@ export const getSubdomain = (): string => {
       const hostname = window.location.hostname; 
       const parts = hostname.split(".");
 
-      const localhostIndex = parts.indexOf("localhost" );
+      const localhostIndex = parts.indexOf("theadome" );
       
       if (localhostIndex > 0) {
           const value = parts.slice(0, localhostIndex).join("."); 
