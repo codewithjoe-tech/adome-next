@@ -259,19 +259,24 @@ const BackgroundColorPicker = ({ dispatch, state, bgImage = false, id: PropId }:
 
 
 
-useEffect(() => {
-  if (colorState.gradient) {
-    let color = `linear-gradient(${colorState.direction}, ${colorState.color1.startsWith('#') ? colorState.color1 : hexToRgba(colorState.color1, colorState.opacity1)}, ${colorState.color2.startsWith('#') ? colorState.color2 : hexToRgba(colorState.color2, colorState.opacity2)}) `;
-    if (colorState.image) {
-      color += `, url("${colorState.image}") no-repeat center / ${colorState.ImageSize || 'cover'}`;
+
+  useEffect(() => {
+    if (colorState.gradient) {
+      let color = `linear-gradient(${colorState.direction}, ${hexToRgba(colorState.color1, colorState.opacity1)}, ${hexToRgba(colorState.color2, colorState.opacity2)}) `
+      if (colorState.image){
+        color += `, url("${colorState.image}") no-repeat center / ${colorState.ImageSize ||'cover'}`
+      }
+      // console.log(color)
+      console.log(color)
+      handleColorChange(color)
+
+    } else {
+      const color = hexToRgba(colorState.color, colorState.opacity)
+      // console.log(color)
+      handleColorChange(color)
     }
-    handleColorChange(color);
-  } else {
-    // If the color is a hex value, use it directly; otherwise, convert to RGBA
-    const color = colorState.color.startsWith('#') ? colorState.color : hexToRgba(colorState.color, colorState.opacity);
-    handleColorChange(color);
-  }
-}, [colorState]);
+  }, [colorState])
+
 
   const colorValue = (): string => {
     if (colorState.gradient) {
