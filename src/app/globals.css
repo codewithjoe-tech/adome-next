@@ -252,10 +252,18 @@ html {
 @layer base {
   * {
     @apply border-border outline-ring/50;
+    scrollbar-width: none;      
+    -ms-overflow-style: none;
+    
   }
-
+  *::-webkit-scrollbar {
+    display: none;               /* Chrome/Safari */
+  }
+  html,
   body {
     @apply bg-background text-foreground;
+    overflow: auto;
+    scroll-behavior: smooth;
   }
 }
 
@@ -281,16 +289,7 @@ html {
   scroll-behavior: smooth;
 
 }
-html, body {
-  overflow: auto; /* Ensure scrolling is enabled */
-  scrollbar-width: none; /* Firefox */
-  -ms-overflow-style: none; /* Internet Explorer and Edge */
-}
 
-/* Chrome, Safari, and Edge */
-html::-webkit-scrollbar, body::-webkit-scrollbar {
-  display: none;
-}
 /* 
 .novel-editor:focus {
   outline: none !important;
