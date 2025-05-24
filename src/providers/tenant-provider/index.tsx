@@ -23,10 +23,7 @@ const TenantProvider = ({ children }: { children: React.ReactNode }) => {
   const router = useRouter();
   const { data: tenantData, isLoading, isError } = useQuery({
     queryKey: ["tenantData" , getSubdomain()],
-    queryFn: async ()=>{
-      if (tenant?.id) return tenant
-      return await fetchTenant()
-    },
+    queryFn:fetchTenant,
     retry: false,
     // enabled : !tenant?.id
   });
