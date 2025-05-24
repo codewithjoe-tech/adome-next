@@ -71,10 +71,9 @@ const WebEditorSidebar = (props: Props) => {
             <SheetHeader className="text-left p-6 ">
               <SheetTitle>Layers</SheetTitle>
               <SheetDescription>
-                You can view the canvas like a tree structure.
+                You can drag and drop components on the canvas
               </SheetDescription>
             </SheetHeader>
-            {/* <ComponentsTab /> */}
             <Layers />
           </TabsContent>
         </div>
