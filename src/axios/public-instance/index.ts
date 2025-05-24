@@ -4,6 +4,10 @@ import axios, { AxiosInstance, InternalAxiosRequestConfig, AxiosResponse } from 
 import { toast } from "sonner";
 import { getCookie, setCookie, removeCookie } from "typescript-cookie";
 
+interface ExtendedAxiosRequestConfig extends InternalAxiosRequestConfig {
+  _retry?: boolean;
+}
+
 const apiUrl = process.env.NEXT_PUBLIC_API_URL;
 
 const axiosInstance: AxiosInstance = axios.create({
@@ -14,9 +18,9 @@ const axiosInstance: AxiosInstance = axios.create({
 
 let isRefreshing = false;
 let failedQueue: {
-  resolve: (config: InternalAxiosRequestConfig) => void;
+  resolve: (config: ExtendedAxiosRequestConfig) => void; 
   reject: (reason?: any) => void;
-  config: InternalAxiosRequestConfig;
+  config: ExtendedAxiosRequestConfig;
 }[] = [];
 
 const processQueue = (error: any) => {
@@ -24,7 +28,6 @@ const processQueue = (error: any) => {
     if (error) {
       prom.reject(error);
     } else {
-      // Resolve with the original config to retry the request
       prom.resolve(prom.config);
     }
   });
@@ -32,13 +35,17 @@ const processQueue = (error: any) => {
 };
 
 axiosInstance.interceptors.request.use(
-  async (config: InternalAxiosRequestConfig) => {
+  async (config: ExtendedAxiosRequestConfig) => {
     const schemaName = store.getState().app.schemaName;
     const tokenExpiry = Number(getCookie(`${schemaName}_expiry`));
     const currentTime = Math.floor(Date.now() / 1000);
 
     if (config.url?.includes("/refresh")) {
-      return config; 
+      return config;
+    }
+
+    if (config._retry) {
+      return config;
     }
 
     if (tokenExpiry && currentTime > tokenExpiry) {
@@ -56,9 +63,9 @@ axiosInstance.interceptors.request.use(
           processQueue(null);
         } catch (err) {
           processQueue(err);
-          toast.warning('Logging out',{
-            description : "User is logged out successfully"
-          })
+          toast.warning("Logging out", {
+            description: "User is logged out successfully",
+          });
           removeCookie(`${schemaName}_expiry`);
           throw err;
         } finally {
@@ -69,8 +76,9 @@ axiosInstance.interceptors.request.use(
       return new Promise((resolve, reject) => {
         failedQueue.push({
           config,
-          resolve: (updatedConfig: InternalAxiosRequestConfig) => {
-            resolve(axiosInstance(updatedConfig));
+          resolve: (updatedConfig: ExtendedAxiosRequestConfig) => {
+            updatedConfig._retry = true;
+            resolve(updatedConfig);
           },
           reject,
         });
@@ -87,9 +95,9 @@ axiosInstance.interceptors.response.use(
   (error) => {
     if (error.response && error.response.status === 429) {
       error.message = "Too many attempts. Please try again later.";
-      // toast.error("Too many attempts!!!",{
-      //   description : "You cannot request for 1 minute as you are banned for a minute"
-      // })
+      toast.error("Too many attempts!!!", {
+        description: "You cannot request for 1 minute as you are banned for a minute",
+      });
     }
     return Promise.reject(error);
   }
