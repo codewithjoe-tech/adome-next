@@ -1,4 +1,4 @@
-import React, { useEffect, useReducer, useState } from "react";
+import React, { useReducer } from "react";
 import { Popover, PopoverContent, PopoverTrigger } from "@/components/ui/popover";
 import { HexColorPicker } from "react-colorful";
 import { EditorState } from "@/providers/editor/editor-provider";
@@ -78,7 +78,7 @@ const gradients = [
 const images = [
   'url(https://images.unsplash.com/photo-1691200099282-16fd34790ade?ixlib=rb-4.0.3&ixid=M3wxMjA3fDB8MHxwaG90by1wYWdlfHx8fGVufDB8fHx8fA%3D%3D&auto=format&fit=crop&w=2532&q=90)',
   'url(https://images.unsplash.com/photo-1691226099773-b13a89a1d167?ixlib=rb-4.0.3&ixid=M3wxMjA3fDB8MHxwaG90by1wYWdlfHx8fGVufDB8fHx8fA%3D%3D&auto=format&fit=crop&w=2532&q=90)',
-  'url(https://images.unsplash.com/photo-1688822863426-8c5f9b257090?ixlib=rb-4.0.3&ixid=M3wxMjA3fDB8MHxwaG90by1wYWdlfHx8fGVufDB8fHx8fA%3D%3D&auto=format&fit=crop&w=2532&q=90)',
+  'url(https://images.unsplash.com/photo-1688822863426-8c5f9b257090?ixlib=rb-4.0.3&ixid=M3wxMjA3fDB8MHxwaG90by1wYWdlfHx8fGVufDB8fXxfA%3D%3D&auto=format&fit=crop&w=2532&q=90)',
   'url(https://images.unsplash.com/photo-1691225850735-6e4e51834cad?ixlib=rb-4.0.3&ixid=M3wxMjA3fDB8MHxwaG90by1wYWdlfHx8fGVufDB8fHx8fA%3D%3D&auto=format&fit=crop&w=2532&q=90)',
 ];
 
@@ -176,6 +176,19 @@ const BackgroundColorPicker = ({ dispatch, state, bgImage = false, id: PropId }:
     return `rgba(NaN, 0, 0, ${alpha})`;
   };
 
+  const computeBackgroundStyle = (): string => {
+    if (colorState.gradient) {
+      const gradientString = `linear-gradient(${colorState.direction}, ${colorState.color1.startsWith('#') ? colorState.color1 : hexToRgba(colorState.color1, colorState.opacity1)}, ${colorState.color2.startsWith('#') ? colorState.color2 : hexToRgba(colorState.color2, colorState.opacity2)})`;
+      return colorState.image
+        ? `${gradientString}, url("${colorState.image}") no-repeat center / ${colorState.ImageSize || 'cover'}`
+        : gradientString;
+    } else if (colorState.image) {
+      return `url("${colorState.image}") no-repeat center / ${colorState.ImageSize || 'cover'}`;
+    } else {
+      return colorState.color.startsWith('#') ? colorState.color : hexToRgba(colorState.color, colorState.opacity);
+    }
+  };
+
   const handleColorChange = (newColor: string) => {
     console.log("clicked color: " + newColor);
 
@@ -208,18 +221,13 @@ const BackgroundColorPicker = ({ dispatch, state, bgImage = false, id: PropId }:
       colorDispatch({ type: 'SET_COLOR', payload: newColor });
     }
 
-    // Trigger color update only when user explicitly changes the color
-    const color = colorState.gradient
-      ? `linear-gradient(${colorState.direction}, ${newColor.startsWith('#') ? newColor : hexToRgba(newColor, colorState.opacity1)}, ${colorState.color2.startsWith('#') ? colorState.color2 : hexToRgba(colorState.color2, colorState.opacity2)})${colorState.image ? `, url("${colorState.image}") no-repeat center / ${colorState.ImageSize || 'cover'}` : ''}`
-      : newColor.startsWith('#') ? newColor : hexToRgba(newColor, colorState.opacity);
-    handleColorChange(color);
+    handleColorChange(computeBackgroundStyle());
   };
 
   const onImageChange = (e: any) => {
-    colorDispatch({ type: 'SET_IMAGE', payload: e.target.value });
-    // Trigger color update
-    const color = `url("${e.target.value}") no-repeat center / ${colorState.ImageSize || 'cover'}${colorState.gradient ? `, linear-gradient(${colorState.direction}, ${colorState.color1.startsWith('#') ? colorState.color1 : hexToRgba(colorState.color1, colorState.opacity1)}, ${colorState.color2.startsWith('#') ? colorState.color2 : hexToRgba(colorState.color2, colorState.opacity2)})` : ''}`;
-    handleColorChange(color);
+    const newImage = e.target.value;
+    colorDispatch({ type: 'SET_IMAGE', payload: newImage });
+    handleColorChange(computeBackgroundStyle());
   };
 
   const changeOpacity = (value: number) => {
@@ -233,34 +241,22 @@ const BackgroundColorPicker = ({ dispatch, state, bgImage = false, id: PropId }:
       colorDispatch({ type: 'SET_OPACITY', payload: value });
     }
 
-    // Trigger color update
-    const color = colorState.gradient
-      ? `linear-gradient(${colorState.direction}, ${colorState.color1.startsWith('#') ? colorState.color1 : hexToRgba(colorState.color1, colorState.opacity1)}, ${colorState.color2.startsWith('#') ? colorState.color2 : hexToRgba(colorState.color2, colorState.opacity2)})${colorState.image ? `, url("${colorState.image}") no-repeat center / ${colorState.ImageSize || 'cover'}` : ''}`
-      : colorState.color.startsWith('#') ? colorState.color : hexToRgba(colorState.color, value);
-    handleColorChange(color);
+    handleColorChange(computeBackgroundStyle());
   };
 
   const handleGradientToggle = () => {
     colorDispatch({ type: 'SET_GRADIENT', payload: !colorState.gradient });
-    // Trigger color update
-    const color = !colorState.gradient
-      ? `linear-gradient(${colorState.direction}, ${colorState.color1.startsWith('#') ? colorState.color1 : hexToRgba(colorState.color1, colorState.opacity1)}, ${colorState.color2.startsWith('#') ? colorState.color2 : hexToRgba(colorState.color2, colorState.opacity2)})${colorState.image ? `, url("${colorState.image}") no-repeat center / ${colorState.ImageSize || 'cover'}` : ''}`
-      : colorState.color.startsWith('#') ? colorState.color : hexToRgba(colorState.color, colorState.opacity);
-    handleColorChange(color);
+    handleColorChange(computeBackgroundStyle());
   };
 
   const handleDirectionChange = (val: string) => {
     colorDispatch({ type: 'SET_DIRECTION', payload: val });
-    // Trigger color update
-    const color = `linear-gradient(${val}, ${colorState.color1.startsWith('#') ? colorState.color1 : hexToRgba(colorState.color1, colorState.opacity1)}, ${colorState.color2.startsWith('#') ? colorState.color2 : hexToRgba(colorState.color2, colorState.opacity2)})${colorState.image ? `, url("${colorState.image}") no-repeat center / ${colorState.ImageSize || 'cover'}` : ''}`;
-    handleColorChange(color);
+    handleColorChange(computeBackgroundStyle());
   };
 
   const handleImageSizeChange = (val: string) => {
     colorDispatch({ type: 'SET_IMAGE_SIZE', payload: val });
-    // Trigger color update
-    const color = `${colorState.image ? `url("${colorState.image}") no-repeat center / ${val}` : ''}${colorState.gradient ? `, linear-gradient(${colorState.direction}, ${colorState.color1.startsWith('#') ? colorState.color1 : hexToRgba(colorState.color1, colorState.opacity1)}, ${colorState.color2.startsWith('#') ? colorState.color2 : hexToRgba(colorState.color2, colorState.opacity2)})` : ''}`;
-    handleColorChange(color);
+    handleColorChange(computeBackgroundStyle());
   };
 
   const colorValue = (): string => {
