@@ -178,6 +178,21 @@ const BackgroundColorPicker = ({ dispatch, state, bgImage = false, id: PropId }:
     return `rgba(0, 0, 0, ${alpha})`;
   };
 
+  const computeBackgroundStyle = (state: ColorState): string => {
+    let color: string;
+    if (state.gradient) {
+      color = `linear-gradient(${state.direction}, ${state.color1.startsWith('#') ? hexToRgba(state.color1, state.opacity1) : hexToRgba(state.color1, state.opacity1)}, ${state.color2.startsWith('#') ? hexToRgba(state.color2, state.opacity2) : hexToRgba(state.color2, state.opacity2)})`;
+      if (state.image) {
+        color += `, url("${state.image}") no-repeat center / ${state.ImageSize || 'cover'}`;
+      }
+    } else if (state.image) {
+      color = `url("${state.image}") no-repeat center / ${state.ImageSize || 'cover'}`;
+    } else {
+      color = state.color.startsWith('#') ? hexToRgba(state.color, state.opacity) : hexToRgba(state.color, state.opacity);
+    }
+    return color;
+  };
+
   const handleColorChange = (newColor: string) => {
     console.log("clicked color: " + newColor);
 
@@ -209,18 +224,7 @@ const BackgroundColorPicker = ({ dispatch, state, bgImage = false, id: PropId }:
       return;
     }
 
-    let color: string;
-    if (colorState.gradient) {
-      color = `linear-gradient(${colorState.direction}, ${colorState.color1.startsWith('#') ? colorState.color1 : hexToRgba(colorState.color1, colorState.opacity1)}, ${colorState.color2.startsWith('#') ? colorState.color2 : hexToRgba(colorState.color2, colorState.opacity2)})`;
-      if (colorState.image) {
-        color += `, url("${colorState.image}") no-repeat center / ${colorState.ImageSize || 'cover'}`;
-      }
-    } else if (colorState.image) {
-      color = `url("${colorState.image}") no-repeat center / ${colorState.ImageSize || 'cover'}`;
-    } else {
-      color = colorState.color.startsWith('#') ? colorState.color : hexToRgba(colorState.color, colorState.opacity);
-    }
-
+    const color = computeBackgroundStyle(colorState);
     console.log("Computed color: " + color);
     handleColorChange(color);
   }, [colorState]);
@@ -236,6 +240,9 @@ const BackgroundColorPicker = ({ dispatch, state, bgImage = false, id: PropId }:
     } else {
       colorDispatch({ type: 'SET_COLOR', payload: newColor });
     }
+    const color = computeBackgroundStyle(colorState);
+    console.log("Custom color change: " + color);
+    handleColorChange(color);
   };
 
   const onImageChange = (e: any) => {
@@ -245,12 +252,12 @@ const BackgroundColorPicker = ({ dispatch, state, bgImage = false, id: PropId }:
 
     let color: string;
     if (colorState.gradient) {
-      color = `linear-gradient(${colorState.direction}, ${colorState.color1.startsWith('#') ? colorState.color1 : hexToRgba(colorState.color1, colorState.opacity1)}, ${colorState.color2.startsWith('#') ? colorState.color2 : hexToRgba(colorState.color2, colorState.opacity2)})`;
+      color = `linear-gradient(${colorState.direction}, ${colorState.color1.startsWith('#') ? hexToRgba(colorState.color1, colorState.opacity1) : hexToRgba(colorState.color1, colorState.opacity1)}, ${colorState.color2.startsWith('#') ? hexToRgba(colorState.color2, colorState.opacity2) : hexToRgba(colorState.color2, colorState.opacity2)})`;
       if (newImage) {
         color += `, url("${newImage}") no-repeat center / ${colorState.ImageSize || 'cover'}`;
       }
     } else {
-      color = newImage ? `url("${newImage}") no-repeat center / ${colorState.ImageSize || 'cover'}` : colorState.color.startsWith('#') ? colorState.color : hexToRgba(colorState.color, colorState.opacity);
+      color = newImage ? `url("${newImage}") no-repeat center / ${colorState.ImageSize || 'cover'}` : colorState.color.startsWith('#') ? hexToRgba(colorState.color, colorState.opacity) : hexToRgba(colorState.color, colorState.opacity);
     }
 
     console.log("Image change color: " + color);
@@ -268,35 +275,49 @@ const BackgroundColorPicker = ({ dispatch, state, bgImage = false, id: PropId }:
     } else {
       colorDispatch({ type: 'SET_OPACITY', payload: value });
     }
+
+    const color = computeBackgroundStyle(colorState);
+    console.log("Opacity change color: " + color);
+    handleColorChange(color);
   };
 
   const handleGradientToggle = () => {
     hasUserInteracted.current = true;
     colorDispatch({ type: 'SET_GRADIENT', payload: !colorState.gradient });
+    const color = computeBackgroundStyle({ ...colorState, gradient: !colorState.gradient });
+    console.log("Gradient toggle color: " + color);
+    handleColorChange(color);
   };
 
   const handleDirectionChange = (val: string) => {
     hasUserInteracted.current = true;
     colorDispatch({ type: 'SET_DIRECTION', payload: val });
+    const color = computeBackgroundStyle({ ...colorState, direction: val });
+    console.log("Direction change color: " + color);
+    handleColorChange(color);
   };
 
   const handleImageSizeChange = (val: string) => {
     hasUserInteracted.current = true;
     colorDispatch({ type: 'SET_IMAGE_SIZE', payload: val });
+    const color = computeBackgroundStyle({ ...colorState, ImageSize: val });
+    console.log("Image size change color: " + color);
+    handleColorChange(color);
   };
 
   const handleImageSelect = (imageUrl: string) => {
     hasUserInteracted.current = true;
-    colorDispatch({ type: 'SET_IMAGE', payload: imageUrl.replace(/^url\(["']?/, '').replace(/["']?\)$/, '') });
+    const cleanUrl = imageUrl.replace(/^url\(["']?/, '').replace(/["']?\)$/, '');
+    colorDispatch({ type: 'SET_IMAGE', payload: cleanUrl });
 
     let color: string;
     if (colorState.gradient) {
-      color = `linear-gradient(${colorState.direction}, ${colorState.color1.startsWith('#') ? colorState.color1 : hexToRgba(colorState.color1, colorState.opacity1)}, ${colorState.color2.startsWith('#') ? colorState.color2 : hexToRgba(colorState.color2, colorState.opacity2)})`;
-      if (imageUrl) {
-        color += `, ${imageUrl}`;
+      color = `linear-gradient(${colorState.direction}, ${colorState.color1.startsWith('#') ? hexToRgba(colorState.color1, colorState.opacity1) : hexToRgba(colorState.color1, colorState.opacity1)}, ${colorState.color2.startsWith('#') ? hexToRgba(colorState.color2, colorState.opacity2) : hexToRgba(colorState.color2, colorState.opacity2)})`;
+      if (cleanUrl) {
+        color += `, url("${cleanUrl}") no-repeat center / ${colorState.ImageSize || 'cover'}`;
       }
     } else {
-      color = imageUrl;
+      color = cleanUrl ? `url("${cleanUrl}") no-repeat center / ${colorState.ImageSize || 'cover'}` : colorState.color.startsWith('#') ? hexToRgba(colorState.color, colorState.opacity) : hexToRgba(colorState.color, colorState.opacity);
     }
 
     console.log("Image select color: " + color);
