@@ -25,7 +25,7 @@ const TenantProvider = ({ children }: { children: React.ReactNode }) => {
     queryKey: ["tenantData" , getSubdomain()],
     queryFn:fetchTenant,
     retry: false,
-    // enabled : !tenant?.id
+    enabled : !tenant?.id
   });
 
   useEffect(() => {
