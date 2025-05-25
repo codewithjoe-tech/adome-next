@@ -56,7 +56,7 @@ const page = () => {
   })
   
   const fetchCourses = async ({ pageParam = 1 }) => {
-    const response = await axiosInstance.get(`course/${schemaName}/get-courses`, {
+    const response = await axiosInstance.get(`course/${schemaName}/admin-course-get`, {
       params: { page: pageParam }
     })
     
