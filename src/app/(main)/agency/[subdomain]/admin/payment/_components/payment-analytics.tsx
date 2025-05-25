@@ -21,7 +21,7 @@ const PaymentAnalyticsPayment = (props: Props) => {
     queryKey : ['get-wallet'],
     queryFn : async ()=>{
         const response = await axiosInstance.get(`payment/${schemaName}/get-wallet`)
-        console.log(response.data)
+        // console.log(response.data)
         return response.data
     }
   })
@@ -35,7 +35,7 @@ const PaymentAnalyticsPayment = (props: Props) => {
     queryKey : ['get-previous_orders'],
     queryFn : async ()=>{
         const response = await axiosInstance.get(`payment/${schemaName}/previous-orders`)
-        console.log(response.data)
+        // console.log(response.data)
         return response.data
     }
   })

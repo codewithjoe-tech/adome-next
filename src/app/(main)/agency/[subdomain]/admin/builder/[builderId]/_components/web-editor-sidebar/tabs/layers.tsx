@@ -23,13 +23,13 @@ const Layers = (props: Props) => {
         elementDetails: item,
       },
     })
-    console.log('Clicked item:', {
-      id: item.id,
-      name: item.name,
-      type: item.type,
-      styles: item.styles,
-      content: item.content,
-    })
+    // console.log('Clicked item:', {
+    //   id: item.id,
+    //   name: item.name,
+    //   type: item.type,
+    //   styles: item.styles,
+    //   content: item.content,
+    // })
   }
 
   const renderTree = (elements: any[], depth: number = 0) => {

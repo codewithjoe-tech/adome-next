@@ -25,7 +25,7 @@ const Page = () => {
  
 
   const fetchAuth = async () => {
-      console.log('calling fetchAuth')
+      // console.log('calling fetchAuth')
 
     if (stateParam !== "public") return;
 
@@ -33,7 +33,7 @@ const Page = () => {
       if (!code || !scope || !stateParam || !authUser) {
         throw new Error("Missing parameters");
       }
-      console.log(schemaName)
+      // console.log(schemaName)
       const response = await axiosInstance.post(`user/${schemaName}/login`, {
         code,
         scope,
@@ -44,11 +44,11 @@ const Page = () => {
       if (response.data.app && response.data.app !== "public") {
         setSubdomain(response.data.app);
       }
-      console.log(response)
+      // console.log(response)
       setLoading(false);
       return response.data;
     } catch (error: any) {
-      console.log(error)
+      // console.log(error)
       toast({
         title: 'Error',
         description: error.message || 'Authentication failed',

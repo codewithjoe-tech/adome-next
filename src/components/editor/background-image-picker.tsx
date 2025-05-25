@@ -194,7 +194,7 @@ const BackgroundColorPicker = ({ dispatch, state, bgImage = false, id: PropId }:
   };
 
   const handleColorChange = (newColor: string) => {
-    console.log("clicked color: " + newColor);
+    // console.log("clicked color: " + newColor);
 
     const styleObject = {
       [PropId]: newColor,
@@ -225,7 +225,7 @@ const BackgroundColorPicker = ({ dispatch, state, bgImage = false, id: PropId }:
     }
 
     const color = computeBackgroundStyle(colorState);
-    console.log("Computed color: " + color);
+    // console.log("Computed color: " + color);
     handleColorChange(color);
   }, [colorState]);
 
@@ -241,7 +241,7 @@ const BackgroundColorPicker = ({ dispatch, state, bgImage = false, id: PropId }:
       colorDispatch({ type: 'SET_COLOR', payload: newColor });
     }
     const color = computeBackgroundStyle(colorState);
-    console.log("Custom color change: " + color);
+    // console.log("Custom color change: " + color);
     handleColorChange(color);
   };
 
@@ -260,7 +260,7 @@ const BackgroundColorPicker = ({ dispatch, state, bgImage = false, id: PropId }:
       color = newImage ? `url("${newImage}") no-repeat center / ${colorState.ImageSize || 'cover'}` : colorState.color.startsWith('#') ? hexToRgba(colorState.color, colorState.opacity) : hexToRgba(colorState.color, colorState.opacity);
     }
 
-    console.log("Image change color: " + color);
+    // console.log("Image change color: " + color);
     handleColorChange(color);
   };
 
@@ -277,7 +277,7 @@ const BackgroundColorPicker = ({ dispatch, state, bgImage = false, id: PropId }:
     }
 
     const color = computeBackgroundStyle(colorState);
-    console.log("Opacity change color: " + color);
+    // console.log("Opacity change color: " + color);
     handleColorChange(color);
   };
 
@@ -285,7 +285,7 @@ const BackgroundColorPicker = ({ dispatch, state, bgImage = false, id: PropId }:
     hasUserInteracted.current = true;
     colorDispatch({ type: 'SET_GRADIENT', payload: !colorState.gradient });
     const color = computeBackgroundStyle({ ...colorState, gradient: !colorState.gradient });
-    console.log("Gradient toggle color: " + color);
+    // console.log("Gradient toggle color: " + color);
     handleColorChange(color);
   };
 
@@ -293,7 +293,7 @@ const BackgroundColorPicker = ({ dispatch, state, bgImage = false, id: PropId }:
     hasUserInteracted.current = true;
     colorDispatch({ type: 'SET_DIRECTION', payload: val });
     const color = computeBackgroundStyle({ ...colorState, direction: val });
-    console.log("Direction change color: " + color);
+    // console.log("Direction change color: " + color);
     handleColorChange(color);
   };
 
@@ -301,7 +301,7 @@ const BackgroundColorPicker = ({ dispatch, state, bgImage = false, id: PropId }:
     hasUserInteracted.current = true;
     colorDispatch({ type: 'SET_IMAGE_SIZE', payload: val });
     const color = computeBackgroundStyle({ ...colorState, ImageSize: val });
-    console.log("Image size change color: " + color);
+    // console.log("Image size change color: " + color);
     handleColorChange(color);
   };
 
@@ -320,7 +320,7 @@ const BackgroundColorPicker = ({ dispatch, state, bgImage = false, id: PropId }:
       color = cleanUrl ? `url("${cleanUrl}") no-repeat center / ${colorState.ImageSize || 'cover'}` : colorState.color.startsWith('#') ? hexToRgba(colorState.color, colorState.opacity) : hexToRgba(colorState.color, colorState.opacity);
     }
 
-    console.log("Image select color: " + color);
+    // console.log("Image select color: " + color);
     handleColorChange(color);
   };
 

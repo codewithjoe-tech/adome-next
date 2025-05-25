@@ -28,7 +28,7 @@ const page = (props: Props) => {
   
   
   useEffect(() => {
-   console.log(isError)
+   // console.log(isError)
   }, [isError])
   
   return (

@@ -44,7 +44,7 @@ const Page = (props: Props) => {
       toast.success("Saved successfully")
     },
     onError :(error)=>{
-      console.log(error)
+      // console.log(error)
       toast.error(error.message)
     },
     

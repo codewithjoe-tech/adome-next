@@ -85,14 +85,14 @@ const ModuleEditDialog = ({module , courseId}:Props) => {
     mutationKey : ['module-edit' , moduleId],
     mutationFn : editModule,
     onMutate : (newData:module)=>{
-      console.log("in on mutate")
-      console.log(newData)
+      // console.log("in on mutate")
+      // console.log(newData)
       toast.success("Module updated successfully!",{
         description : `Module with the id : ${moduleId} has been updated successfully`
       })
       queryClient.setQueryData(['course-modules', courseId],(oldData:any)=>{
-        console.log(oldData)
-        console.log(module.id)
+        // console.log(oldData)
+        // console.log(module.id)
        return oldData.map((value:module)=>{
         return value.id === moduleId ? {...value , title, description} : value
        })
@@ -107,7 +107,7 @@ const ModuleEditDialog = ({module , courseId}:Props) => {
   
 
   const handleSubmit = ()=>{
-    console.log(moduleId)
+    // console.log(moduleId)
     editMutation.mutate({id : moduleId, title , description})
   }
 

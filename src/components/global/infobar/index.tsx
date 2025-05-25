@@ -38,7 +38,7 @@ type Props = {
 
 const useModuleIdPath = () => {
   const pathname = usePathname()
-  console.log(pathname)
+  // console.log(pathname)
   const courseId = React.useMemo(() => {
     const parts = pathname.split('/')
     const index = parts.findIndex(p => p === 'chapters')
@@ -52,18 +52,18 @@ const InfoBar = ({ className }: Props) => {
   const {schemaName} = useSelector((state:RootState)=>state.app)
   const pathName = usePathname()
   const moduleId = useModuleIdPath()
-  console.log(moduleId)
+  // console.log(moduleId)
   // Logout function
   const logoutMutation = useMutation({
     mutationKey: ['logout'],
     mutationFn: async () => await axiosInstance.post(`user/${schemaName}/logout`),
     onSuccess: () => {
-      removeCookie('expiry')
+      removeCookie(`${schemaName}_expiry`)
       removeCookie('refresh_token')
       removeCookie('access_token')
       window.location.href = '/login'
     },
-    onSettled: () => console.log('Logout completed'),
+    // onSettled: () => // console.log('Logout completed'),
     onError: () => console.error('Logout failed'),
   })
 

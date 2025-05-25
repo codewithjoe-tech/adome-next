@@ -72,7 +72,7 @@ const CourseCards = ({
           razorpay_payment_id: response.razorpay_payment_id,
           razorpay_signature: response.razorpay_signature,
         });
-        console.log(serverResponse)
+        // console.log(serverResponse)
         onClick(id);
 
 
@@ -155,7 +155,7 @@ const CourseCards = ({
               onClick={(e) => {
         e.stopPropagation()
 
-                console.log("working")
+                // console.log("working")
                 handlePayment()
               }}
               className="mt-1 bg-transparant text-green-500 hover:bg-green-500 hover:text-themeTextWhite "
