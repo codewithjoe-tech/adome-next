@@ -74,10 +74,13 @@ const Page: React.FC = () => {
     return height - position < threshold;
   };
 
+  const hasPermission = (user?.hasCommunityPermission && user?.is_staff)|| user?.is_admin
+  const urlEnd = hasPermission ? 'get-community-admin' : 'get-communities'
+
   const { data: communities, isLoading: communitiesLoading, isError: communitiesError } = useQuery({
     queryKey: ['get-communities'],
     queryFn: async () => {
-      const response = await axiosInstance.get(`community/${schemaName}/get-communities`);
+      const response = await axiosInstance.get(`community/${schemaName}/${urlEnd}`);
       return response.data;
     },
   });
