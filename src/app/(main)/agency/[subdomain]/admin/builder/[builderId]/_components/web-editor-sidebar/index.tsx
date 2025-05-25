@@ -54,9 +54,7 @@ const WebEditorSidebar = (props: Props) => {
             </SheetHeader>
             <SettingsTab />
           </TabsContent>
-          <TabsContent value="Media">
-            <MediaBucketTab />
-          </TabsContent>
+        
           <TabsContent value="Components">
             <SheetHeader className="text-left p-6 ">
               <SheetTitle>Components</SheetTitle>
@@ -75,6 +73,18 @@ const WebEditorSidebar = (props: Props) => {
               </SheetDescription>
             </SheetHeader>
             <Layers />
+          </TabsContent>
+
+
+          <TabsContent value="Media">
+            <SheetHeader className="text-left p-6 ">
+              <SheetTitle>Media</SheetTitle>
+              <SheetDescription>
+                You can drag and drop components on the canvas
+              </SheetDescription>
+            </SheetHeader>
+            {/* <Layers /> */}
+            <MediaBucketTab />
           </TabsContent>
         </div>
       </SheetContent>

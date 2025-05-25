@@ -209,8 +209,8 @@ const WebEditorNavigation = ({webId , pageDetails}: Props) => {
           >
             <Redo2 />
           </Button>
-          <div className="flex flex-col item-center mr-4">
-            <div className="flex flex-row items-center gap-4">
+          {/* <div className="flex flex-col item-center mr-4"> */}
+            {/* <div className="flex flex-row items-center gap-4">
               Draft
               <Switch
               
@@ -218,12 +218,12 @@ const WebEditorNavigation = ({webId , pageDetails}: Props) => {
                 defaultChecked={true}
               />
               Publish
-            </div>
+            </div> */}
             {/* <span className="text-muted-foreground text-sm">
               Last updated  */}
               {/* {pageDetails.updatedAt.toLocaleDateString()} */}
             {/* </span> */}
-          </div>
+          {/* </div> */}
           <Button onClick={handleOnSave}>Save</Button>
         </aside>
         </nav>

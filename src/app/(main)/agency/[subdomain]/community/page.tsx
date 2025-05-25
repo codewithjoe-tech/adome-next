@@ -22,6 +22,7 @@ import {
   DropdownMenuTrigger,
 } from "@/components/ui/dropdown-menu"
 import { Plus } from 'lucide-react';
+import { toast } from 'sonner';
 
 
 interface Community {
@@ -374,6 +375,12 @@ const handleFileChange = async (e: React.ChangeEvent<HTMLInputElement>)=>{
     };
   }, [selectedCommunity, queryClient]);
 
+  const toastEr = ()=>{
+    toast.warning("Message" , {
+      description : "This feature is turned off now!"
+    })
+  }
+
   const messages = messageData?.pages.flatMap(page => page.results).reverse() || [];
 
   return (
@@ -410,8 +417,8 @@ const handleFileChange = async (e: React.ChangeEvent<HTMLInputElement>)=>{
                       Images
 
     </DropdownMenuItem>
-    <DropdownMenuItem>Videos</DropdownMenuItem>
-    <DropdownMenuItem>Documents</DropdownMenuItem>
+    <DropdownMenuItem onClick={toastEr}>Videos</DropdownMenuItem>
+    <DropdownMenuItem onClick={toastEr}>Documents</DropdownMenuItem>
   </DropdownMenuContent>
 </DropdownMenu>
 
