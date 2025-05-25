@@ -1,7 +1,7 @@
 "use client";
 
-import React, { useRef, useCallback } from "react";
-import {  useInfiniteQuery, useQueryClient } from "@tanstack/react-query";
+import React, { useRef, useCallback, useState, useEffect } from "react";
+import { useInfiniteQuery, useQueryClient } from "@tanstack/react-query";
 import { Input } from "@/components/ui/input";
 import GradientText from "@/components/global/gradiant-text";
 import CourseCard from "@/components/Course/course-card";
@@ -17,16 +17,27 @@ const PAGE_LIMIT = 6;
 
 const Page = () => {
   const router = useRouter();
-  const queryClient = useQueryClient()
+  const queryClient = useQueryClient();
   const { schemaName } = useSelector((state: RootState) => state.app);
-  const res = loadRazorpay()
-  if(!res){
-    alert("Razorpay loading error ")
+  const razorpayReady = loadRazorpay();
+  const [searchTerm, setSearchTerm] = useState("");
+  const [debouncedSearch, setDebouncedSearch] = useState(searchTerm);
+
+  useEffect(() => {
+    const timeout = setTimeout(() => {
+      setDebouncedSearch(searchTerm);
+    }, 400);
+
+    return () => clearTimeout(timeout);
+  }, [searchTerm]);
+
+  if (!razorpayReady) {
+    alert("Razorpay loading error");
   }
 
   const fetchCourses = async ({ pageParam = 1 }) => {
     const response = await axiosInstance.get(`course/${schemaName}/get-courses`, {
-      params: { page: pageParam, limit: PAGE_LIMIT },
+      params: { page: pageParam, limit: PAGE_LIMIT, search: debouncedSearch },
     });
 
     return {
@@ -43,7 +54,7 @@ const Page = () => {
     hasNextPage,
     isFetchingNextPage,
   } = useInfiniteQuery({
-    queryKey: ["courses"],
+    queryKey: ["courses", debouncedSearch],
     queryFn: fetchCourses,
     initialPageParam: 1,
     getNextPageParam: (lastPage) => lastPage.nextPage,
@@ -67,9 +78,9 @@ const Page = () => {
   );
 
   const handleOnClick = (id: number) => {
-    queryClient.setQueryData(["courses"], (oldData: any) => {
+    queryClient.setQueryData(["courses", debouncedSearch], (oldData: any) => {
       if (!oldData) return oldData;
-  
+
       return {
         ...oldData,
         pages: oldData.pages.map((page: any) => ({
@@ -81,7 +92,13 @@ const Page = () => {
       };
     });
   };
-  
+
+  const allCourses = data?.pages.flatMap((page) => page.courses) || [];
+  const showNoCourses =
+    !isLoading && !isError && allCourses.length === 0 && debouncedSearch === "";
+  const showNoResults =
+    !isLoading && !isError && allCourses.length === 0 && debouncedSearch !== "";
+
   return (
     <div className="flex flex-col items-center p-6">
       <GradientText
@@ -93,6 +110,8 @@ const Page = () => {
 
       <Input
         type="text"
+        value={searchTerm}
+        onChange={(e) => setSearchTerm(e.target.value)}
         placeholder="Search courses..."
         className="w-1/2 p-2 border rounded-md shadow-sm mt-4"
       />
@@ -107,32 +126,35 @@ const Page = () => {
           <p className="text-red-500 col-span-full">Failed to load courses.</p>
         )}
 
-        {data?.pages.map((page, pageIndex) =>
-          page.courses.map((course: any, courseIndex: number) => {
-            const isLast =
-              pageIndex === data.pages.length - 1 &&
-              courseIndex === page.courses.length - 1;
+        {allCourses.map((course: any, index: number) => {
+          const isLast = index === allCourses.length - 1;
 
-            return (
-              <div
-                key={course.id}
-                ref={isLast ? lastCourseRef : null}
-                onClick={() => router.push(`/courses/${course.id}`)}
-              >
-                <CourseCard
-                  id={course.id}
-                  title={course.title}
-                  thumbnail={course.thumbnail}
-                  price={course.price}
-                  content={course.content}
-                  onClick={handleOnClick}
-                  owned={course.owned}
-                />
-              </div>
-            );
-          })
-        )}
+          return (
+            <div
+              key={course.id}
+              ref={isLast ? lastCourseRef : null}
+              onClick={() => router.push(`/courses/${course.id}`)}
+            >
+              <CourseCard
+                id={course.id}
+                title={course.title}
+                thumbnail={course.thumbnail}
+                price={course.price}
+                content={course.content}
+                onClick={handleOnClick}
+                owned={course.owned}
+              />
+            </div>
+          );
+        })}
       </div>
+
+      {showNoCourses && (
+        <p className="text-gray-500 text-xl mt-10">No courses available.</p>
+      )}
+      {showNoResults && (
+        <p className="text-gray-500 text-xl mt-10">No results found.</p>
+      )}
 
       {isFetchingNextPage && (
         <p className="text-gray-500 mt-4">Loading more...</p>
@@ -141,5 +163,4 @@ const Page = () => {
   );
 };
 
-// export default Page;
 export default withSubscriptionCheck(React.memo(Page));

@@ -33,7 +33,7 @@ const page = (props: Props) => {
   
   return (
     <div className="h-screen overflow-hidden">
-      {isError && (
+      {(isError && !data) && (
         <NavbarClone />
       )}
     {data && (

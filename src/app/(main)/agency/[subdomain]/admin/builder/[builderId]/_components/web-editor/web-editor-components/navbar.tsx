@@ -103,14 +103,16 @@ const Navbar = ({ element }: Props) => {
     <nav
       style={styles}
       onClick={handleOnClick}
-      className={clsx(
-        'p-4 w-full flex justify-between items-center relative',
-        {
-          '!border-blue-500 border-solid':
-            state.editor.selectedElement.id === element.id,
-          'border-dashed border-[1px] border-slate-300': !liveMode,
-        }
-      )}
+     className={clsx(
+  'p-4 w-full flex justify-between items-center relative',
+  {
+    'border border-blue-500 border-solid':
+      state.editor.selectedElement.id === element.id && !liveMode,
+    'border border-dashed border-slate-300':
+      state.editor.selectedElement.id !== element.id && !liveMode,
+  }
+)}
+
     >
       {state.editor.selectedElement.id === element.id && !liveMode && (
         <Badge className="absolute -top-[23px] -left-[1px] rounded-none rounded-t-lg">
