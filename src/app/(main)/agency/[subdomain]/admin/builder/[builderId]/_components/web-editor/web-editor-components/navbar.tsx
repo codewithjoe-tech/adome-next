@@ -70,13 +70,13 @@ const Navbar = ({ element }: Props) => {
     }
   }
 
-  const navItems = [
+const navItems = [
     { label: 'Home', href: '/' },
     ...(expiry && isAdmin ? [{ label: 'Admin', href: '/admin' }] : []),
-    { label: 'Blog', href: '/blog' },
-    // { label: 'Courses', href: '/courses' },
-    ...(( expiry && tenant.subscription_plan==='2')? [{ label: 'Communities', href: '/community' }] : []),
-    ...((  tenant.subscription_plan==='2')? [{ label: 'Course', href: '/courses' }] : []),
+    
+    ...((tenant?.blog) ? [{ label: 'Blog', href: '/blog' }] : []),
+    ...((tenant?.subscription_plan === '2' && tenant?.courses ) ? [{ label: 'Course', href: '/courses' }] : []),
+    ...((expiry && tenant?.subscription_plan === '2' && tenant?.community && !user?.banned) ? [{ label: 'Communities', href: '/community' }] : []),
   ]
 
   const renderNavItem = (item: { label: string; href: string }) =>

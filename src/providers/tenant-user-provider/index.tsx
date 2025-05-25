@@ -40,7 +40,10 @@ const TenantUserProvider = ({ children }: Props) => {
     queryKey: ["tenantUser"],
     queryFn: fetchTenantUser,
     retry: false,
-     enabled: !user?.id,
+    
+  enabled: true, 
+  refetchOnMount: true, 
+  refetchOnWindowFocus: false,
   });
   const router = useRouter()
   useEffect(() => {

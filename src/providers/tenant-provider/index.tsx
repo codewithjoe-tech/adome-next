@@ -21,12 +21,15 @@ const TenantProvider = ({ children }: { children: React.ReactNode }) => {
   // if (tenant?.id) return <>{children}</>;
   const dispatch = useDispatch();
   const router = useRouter();
-  const { data: tenantData, isLoading, isError } = useQuery({
-    queryKey: ["tenantData" , getSubdomain()],
-    queryFn: fetchTenant,
-    retry: false,
-    enabled : !tenant?.id
-  });
+ const { data: tenantData, isLoading, isError } = useQuery({
+  queryKey: ["tenantData", getSubdomain()],
+  queryFn: fetchTenant,
+  retry: false,
+  enabled: true, 
+  refetchOnMount: true, 
+  refetchOnWindowFocus: false,
+});
+
 
   useEffect(() => {
     if (tenantData?.logo) {
