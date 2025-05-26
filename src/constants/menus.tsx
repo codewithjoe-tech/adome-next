@@ -26,10 +26,5 @@ export const LANDING_PAGE_MENU: MenuProps[] = [
       path: "#pricing",
       section: true,
     },
-    {
-      id: 2,
-      label: "Explore",
-      icon: <Explore />,
-      path: "/explore",
-    },
+ 
   ]
