@@ -53,7 +53,7 @@ const TenantCreateModal = ({open , title , subdomain , setSubdomain}: Props) => 
   subdomain: z
     .string()
     .min(1, "Domain name is required")
-    .transform((val) => val.toLowerCase())
+   
     .regex(/^[a-z0-9][a-z0-9-]*[a-z0-9]$/, "Invalid subdomain format"),
   contact_email: z.string().email("Valid email is required"),
   location: z.string().min(1, "Location is required"),
