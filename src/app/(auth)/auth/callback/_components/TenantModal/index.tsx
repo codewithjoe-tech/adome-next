@@ -48,16 +48,16 @@ const TenantCreateModal = ({open , title , subdomain , setSubdomain}: Props) => 
 
 
   const tenantSchema = z.object({
-  name: z.string().min(1, "Agency name is required"),
+  name: z.string({required_error : "Name is required!"}).min(4, "Minimum 4 letters are required"),
   logo: z.string().min(1, "Logo is required"),
   subdomain: z
-    .string()
-    .min(1, "Domain name is required")
+    .string({required_error : "Subdomain is required!"})
+    .min(4, "Minimum 4 letters are required")
    
     .regex(/^[a-z0-9][a-z0-9-]*[a-z0-9]$/, "Invalid subdomain format"),
-  contact_email: z.string().email("Valid email is required"),
-  location: z.string().min(1, "Location is required"),
-  description: z.string().min(1, "Description is required"),
+  contact_email: z.string({required_error : "Email is required!"}).email("Valid email is required"),
+  location: z.string({required_error : "Location is required!"}).min(4, "Minimum 4 letters"),
+  description: z.string({required_error : "Description is required!"}).min(10, "Minimum 10 letters are required").max(200 , "200 letters exceeded!"),
   blog: z.boolean().default(false),
   community: z.boolean().default(false),
   newsletter: z.boolean().default(false),
