@@ -66,10 +66,15 @@ const TenantForm = ({ form, onSubmit, switches, actionText = "Register" }: Props
               <FormItem>
                 <FormLabel>Sub Domain</FormLabel>
                 <FormControl>
-                  <div className='flex '>
-                    <Input placeholder="brototype" {...field} />
-                    <Badge className=' bg-[#333337] hover:bg-[#333337] text-white'>.theadome.xyz</Badge>
+                  <div className='flex'>
+                    <Input
+                      placeholder="brototype"
+                      {...field}
+                      onChange={(e) => field.onChange(e.target.value.toLowerCase())}
+                    />
+                    <Badge className='bg-[#333337] hover:bg-[#333337] text-white'>.theadome.xyz</Badge>
                   </div>
+
                 </FormControl>
                 <FormMessage />
               </FormItem>
