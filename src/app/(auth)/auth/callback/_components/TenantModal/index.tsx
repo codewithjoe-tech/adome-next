@@ -48,19 +48,21 @@ const TenantCreateModal = ({open , title , subdomain , setSubdomain}: Props) => 
 
 
   const tenantSchema = z.object({
-    name: z.string().min(1, "Agency name is required"),
-    logo: z.string().min(1, "Logo is required"),
-    subdomain: z.string()
-      .min(1, "Domain name is required")
-      .regex(/^[a-z0-9][a-z0-9-]*[a-z0-9]$/, "Invalid subdomain format"),
-    contact_email: z.string().email("Valid email is required"),
-    location: z.string().min(1, "Location is required"),
-    description: z.string().min(1, "Description is required"),
-    blog: z.boolean().default(false),
-    community: z.boolean().default(false),
-    newsletter: z.boolean().default(false),
-    courses: z.boolean().default(false),
-  });
+  name: z.string().min(1, "Agency name is required"),
+  logo: z.string().min(1, "Logo is required"),
+  subdomain: z
+    .string()
+    .min(1, "Domain name is required")
+    .transform((val) => val.toLowerCase())
+    .regex(/^[a-z0-9][a-z0-9-]*[a-z0-9]$/, "Invalid subdomain format"),
+  contact_email: z.string().email("Valid email is required"),
+  location: z.string().min(1, "Location is required"),
+  description: z.string().min(1, "Description is required"),
+  blog: z.boolean().default(false),
+  community: z.boolean().default(false),
+  newsletter: z.boolean().default(false),
+  courses: z.boolean().default(false),
+});
   
 
   const form  = useForm<TenantFormType>({

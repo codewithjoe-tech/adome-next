@@ -68,7 +68,7 @@ const TenantForm = ({ form, onSubmit, switches, actionText = "Register" }: Props
                 <FormControl>
                   <div className='flex '>
                     <Input placeholder="brototype" {...field} />
-                    <Badge className=' bg-[#333337] hover:bg-[#333337] text-white'>.adome.com</Badge>
+                    <Badge className=' bg-[#333337] hover:bg-[#333337] text-white'>.theadome.xyz</Badge>
                   </div>
                 </FormControl>
                 <FormMessage />
