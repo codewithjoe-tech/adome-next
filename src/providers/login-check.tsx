@@ -17,6 +17,10 @@ const LoginCheck = ({ children }: Props) => {
     const { schemaName } = useSelector((state: RootState) => state.app)
     const dispatch = useDispatch()
 
+
+
+
+    
     useEffect(() => {
         // dispatch(setAppInfo({schemaName :  getSubdomain()}))
 
