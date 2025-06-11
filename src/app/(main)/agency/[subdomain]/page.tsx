@@ -24,6 +24,10 @@ const page = (props: Props) => {
     queryKey: ['landing-page'],
     queryFn: fetchLandingPage,
     retry: false,
+    refetchOnWindowFocus: false,
+  refetchOnMount: false,
+  refetchOnReconnect: false,
+  staleTime: Infinity,
   });
   
   
