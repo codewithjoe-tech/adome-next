@@ -44,7 +44,7 @@ type Props = {
 
 
 
-const TenantCreateModal = ({open , title , subdomain , setSubdomain}: Props) => {
+const TenantCreateModal = ({open , title , subdomain , setSubdomain }: Props) => {
 
 
   const tenantSchema = z.object({

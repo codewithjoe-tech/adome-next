@@ -5,7 +5,7 @@ import axiosInstance from '@/axios/public-instance'
 import { useToast } from '@/hooks/use-toast'
 import { RootState } from '@/Redux/store'
 import { useQuery } from '@tanstack/react-query'
-import { useSearchParams } from 'next/navigation'
+import { useRouter, useSearchParams } from 'next/navigation'
 import React, { useEffect, useState } from 'react'
 import { useSelector } from 'react-redux'
 import TenantCreateModal from './_components/TenantModal'
@@ -19,10 +19,10 @@ const Page = () => {
   const authUser = searchParams.get("authuser")
   const { isLoggedIn } = useSelector((state: RootState) => state.user)
   const { toast } = useToast()
-  const [subdomain, setSubdomain] = useState<string | null>(null)
+  // const [subdomain, setSubdomain] = useState<string | null>(null)
   const { schemaName } = useSelector((state: RootState) => state.app)
   const [loading, setLoading] = useState(true)
- 
+  const router = useRouter()
 
   const fetchAuth = async () => {
       console.log('calling fetchAuth')
@@ -41,17 +41,21 @@ const Page = () => {
         authUser
       });
 
-      if (response.data.app && response.data.app !== "public") {
-        setSubdomain(response.data.app);
-      }
+      const {app} = response.data
+
+      router.replace(`/agency-create?app=${app}`);
+      // if (response.data.app && response.data.app !== "public") {
+      //   // setSubdomain(response.data.app);
+      // }
       console.log(response)
       setLoading(false);
       return response.data;
     } catch (error: any) {
+      router.replace('/')
       console.log(error)
       toast({
         title: 'Error',
-        description: error.message || 'Authentication failed',
+        description: error.message  || 'Authentication failed',
         variant: 'destructive'
       });
       return error;
@@ -83,7 +87,7 @@ const Page = () => {
     <div className="h-screen w-full flex items-center justify-center">
       <BackdropGradient className="pt-20 flex flex-col items-center gap-3">
         <Spinner size="large" />
-       { !loading && <TenantCreateModal open={true} subdomain={subdomain} setSubdomain={setSubdomain} />}
+       {/* { !loading && <TenantCreateModal open={true} subdomain={subdomain} setSubdomain={setSubdomain} />} */}
       </BackdropGradient>
     </div>
   );
