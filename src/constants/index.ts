@@ -41,20 +41,27 @@ export const prices = [
 
 export const getSubdomain = (): string => {
   if (typeof window !== "undefined") {
-      const hostname = window.location.hostname; 
+      const hostname = window.location.hostname;
       const parts = hostname.split(".");
 
+      // Local dev: subdomain.localhost (e.g. codewithjoe.localhost)
+      const localDevIndex = parts.indexOf("localhost");
+      if (localDevIndex > 0) {
+          const value = parts.slice(0, localDevIndex).join(".");
+          return value === "www" ? "public" : value;
+      }
+
       const localhostIndex = parts.indexOf("theadome" );
-      
+
       if (localhostIndex > 0) {
-          const value = parts.slice(0, localhostIndex).join("."); 
+          const value = parts.slice(0, localhostIndex).join(".");
           if (value==='www'){
             return 'public'
           }
           return value
       }
   }
-  return "public"; 
+  return "public";
 };
 
 

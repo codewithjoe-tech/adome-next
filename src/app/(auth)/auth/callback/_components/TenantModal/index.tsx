@@ -21,7 +21,8 @@ import { RootState } from '@/Redux/store'
 import { Button } from '@/components/ui/button'
 import { ArrowLeft, ArrowRight } from 'lucide-react'
 import { useRouter } from 'next/navigation'
-  
+import { tenantUrl } from '@/lib/utils'
+
 
 type Props = {
     open: boolean 
@@ -128,7 +129,7 @@ const TenantCreateModal = ({open , title , subdomain , setSubdomain }: Props) =>
   
 
 const navigatePage = ()=>{
-    window.location.href = `http://${subdomain}.theadome.xyz/admin`
+    window.location.href = tenantUrl(subdomain!, '/admin')
     // router.push(`/agency/${subdomain}/admin`)
 }
 

@@ -8,7 +8,20 @@ interface ExtendedAxiosRequestConfig extends InternalAxiosRequestConfig {
   _retry?: boolean;
 }
 
-const apiUrl = process.env.NEXT_PUBLIC_API_URL;
+// In local dev, call the API through the page's own hostname (codewithjoe.localhost
+// -> http://codewithjoe.localhost/) so auth cookies stay same-site. Browsers treat
+// localhost vs sub.localhost as cross-site and block/partition cookies otherwise.
+const getApiUrl = (): string | undefined => {
+  if (typeof window !== "undefined") {
+    const h = window.location.hostname;
+    if (h === "localhost" || h.endsWith(".localhost")) {
+      return `http://${h}/`;
+    }
+  }
+  return process.env.NEXT_PUBLIC_API_URL;
+};
+
+const apiUrl = getApiUrl();
 
 const axiosInstance: AxiosInstance = axios.create({
   baseURL: apiUrl,

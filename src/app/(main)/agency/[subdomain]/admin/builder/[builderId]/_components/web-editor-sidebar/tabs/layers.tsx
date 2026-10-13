@@ -50,8 +50,8 @@ const Layers = (props: Props) => {
                   >
                     <span className="flex items-center pl-1 ">
                       <span className="relative mr-2 h-4 w-4">
-                        <Folder className="absolute h-4 w-4 -left-1 transition-opacity duration-200 ease-in-out group-[data-state=open]:opacity-0" />
-                        <FolderOpen className="absolute h-4 w-4 -left-1 opacity-0 transition-opacity duration-200 ease-in-out group-[data-state=open]:opacity-100" />
+                        <Folder className="absolute h-4 w-4 -left-1 transition-opacity duration-200 ease-in-out group-data-[state=open]:opacity-0" />
+                        <FolderOpen className="absolute h-4 w-4 -left-1 opacity-0 transition-opacity duration-200 ease-in-out group-data-[state=open]:opacity-100" />
                       </span>
                       {element.name} ({element.type})
                     </span>

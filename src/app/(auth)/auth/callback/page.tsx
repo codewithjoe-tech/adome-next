@@ -10,6 +10,7 @@ import React, { useEffect, useState } from 'react'
 import { useSelector } from 'react-redux'
 import TenantCreateModal from './_components/TenantModal'
 import BackdropGradient from '@/components/global/backdrop-gradiant'
+import { tenantUrl } from '@/lib/utils'
 
 const Page = () => {
   const searchParams = useSearchParams()
@@ -73,7 +74,7 @@ const Page = () => {
 
   useEffect(() => {
     if (stateParam && stateParam !== "public" && typeof window !== 'undefined') {
-      const url = new URL(`http://${stateParam}.theadome.xyz/login`);
+      const url = new URL(tenantUrl(stateParam, '/login'));
       url.search = searchParams.toString();
       window.location.href = url.toString();
     }else{
